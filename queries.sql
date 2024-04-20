@@ -38,7 +38,7 @@ WHERE
     AND bathrooms >= minBath
     AND bathrooms <= maxBath
     AND price BETWEEN minPrice AND maxPrice
-    AND property_type = 'propertyType'
+    AND property_type = 'propertyType';
 ORDER BY score DESC
 LIMIT pageSize OFFSET ofst;
 
@@ -130,36 +130,7 @@ WHERE a.airbnb_id IN (
     FROM review_airbnb
 );
 
---  rank a specific business within its various categories relative to nearby competitors, based on average star ratings
-WITH SpecificBusinessDetails AS (
-    SELECT latitude, longitude
-    FROM business
-    WHERE business_id = 'specific_business_id'
-), RankedBusinesses AS (
-    SELECT
-        c.category,
-        b.business_id,
-        b.name,
-        b.stars,
-        RANK() OVER (PARTITION BY c.category ORDER BY b.stars DESC) AS Rank
-    FROM 
-        business b
-    JOIN 
-        category c ON b.business_id = c.business_id,
-        SpecificBusinessDetails sbd
-    WHERE 
-        ABS(b.latitude - sbd.latitude) <= 0.1
-        AND ABS(b.longitude - sbd.longitude) <= 0.1
-)
-SELECT 
-    category,
-    Rank
-FROM 
-    RankedBusinesses
-WHERE 
-    business_id = 'specific_business_id'
-ORDER BY 
-    category;
+
 
 -- Query user's prefered entertainment category
 SELECT 
@@ -190,8 +161,134 @@ ORDER BY
     category_count DESC, average_rating DESC
 LIMIT 3;
 
+
+-- Identify customers who have left multiple positive reviews (4 stars or higher) for a specific business over time, 
+-- indicating loyalty or repeated satisfaction with the business's offerings.
+SELECT 
+    R.user_id, 
+    U.name AS UserName,
+    COUNT(R.review_id) AS PositiveReviewCount,
+    MIN(R.date) AS FirstPositiveReview,
+    MAX(R.date) AS LatestPositiveReview
+FROM 
+    Review R
+JOIN 
+    User U ON R.user_id = U.user_id
+WHERE 
+    R.business_id = 'specific_business_id' AND R.stars >= 4
+GROUP BY 
+    R.user_id, U.name
+HAVING 
+    COUNT(R.review_id) > 1 AND -- More than one positive review indicates repeat satisfaction
+    EXISTS ( -- Ensure there's a recent positive review within the last year
+        SELECT 1 
+        FROM Review R2
+        WHERE R2.user_id = R.user_id 
+        AND R2.business_id = R.business_id 
+        AND R2.stars >= 4
+        AND R2.date > CURRENT_DATE - INTERVAL '1 year'
+    )
+ORDER BY 
+    PositiveReviewCount DESC, LatestPositiveReview DESC
+LIMIT 10;
+
+
+-- Social Influence and Network
+-- Shows friends' influence based on reviews of shared businesses
+
+WITH FriendReviews AS (
+    SELECT
+        bf.friend_id,
+        COUNT(r.review_id) AS TotalReviews,
+        AVG(r.stars) AS AverageRating,
+        MIN(r.stars) AS MinRating  -- Universal check: Ensure all reviews are above a certain quality
+    FROM
+        (SELECT user_b AS friend_id FROM Befriend WHERE user_a = 'specific_user_id'
+         UNION
+         SELECT user_a AS friend_id FROM Befriend WHERE user_b = 'specific_user_id') bf
+    JOIN Review r ON bf.friend_id = r.user_id
+    JOIN Review myr ON r.business_id = myr.business_id AND myr.user_id = 'specific_user_id'
+    GROUP BY bf.friend_id
+    HAVING COUNT(r.review_id) > 1 AND MIN(r.stars) >= 4 -- Ensuring all reviews are at least 4 stars
+)
+SELECT 
+    u.name AS FriendName,
+    fr.TotalReviews,
+    ROUND(fr.AverageRating, 2) AS AvgRating
+FROM 
+    FriendReviews fr
+JOIN 
+    User u ON fr.friend_id = u.user_id
+WHERE 
+    EXISTS (  -- Existential check: Ensure there is at least one business both have highly rated
+        SELECT 1 
+        FROM Review fr
+        JOIN Review ur ON fr.business_id = ur.business_id
+        WHERE fr.user_id = fr.friend_id AND ur.user_id = 'specific_user_id' 
+        AND fr.stars >= 4 AND ur.stars >= 4
+    )
+ORDER BY 
+    fr.TotalReviews DESC, fr.AverageRating DESC
+LIMIT 10;
+
+
+
+-- Competitive Ranking
+-- ranks within its operational categories compared to direct competitors
+-- that share a substantial number of mutual customers
+WITH SharedReviewers AS (
+    SELECT
+        r.business_id,
+        COUNT(DISTINCT r.user_id) AS SharedReviewersCount
+    FROM
+        Review r
+    WHERE
+        EXISTS (
+            SELECT 1 
+            FROM Review r2 
+            WHERE r2.business_id = 'specific_business_id' AND r2.user_id = r.user_id
+        )
+    GROUP BY
+        r.business_id
+    HAVING
+        COUNT(DISTINCT r.user_id) >= 3  -- Only include businesses with at least 3 shared reviewers
+),
+Rankings AS (
+    SELECT
+        c.category,
+        b.business_id,
+        b.name AS BusinessName,
+        AVG(r.stars) AS AverageRating,
+        COUNT(r.review_id) AS ReviewCount,
+        RANK() OVER (PARTITION BY c.category ORDER BY AVG(r.stars) DESC, COUNT(r.review_id) DESC) AS Rank
+    FROM
+        Business b
+    JOIN
+        Review r ON b.business_id = r.business_id
+    JOIN
+        Category c ON b.business_id = c.business_id
+    WHERE
+        b.business_id IN (SELECT business_id FROM SharedReviewers)
+    GROUP BY
+        c.category, b.business_id
+)
+SELECT
+    category,
+    BusinessName,
+    AverageRating,
+    ReviewCount,
+    Rank
+FROM 
+    Rankings
+WHERE 
+    business_id = 'specific_business_id' AND Rank <= 10
+ORDER BY
+    category, Rank;
+
+
+
 -- Identify top-rated businesses (e.g., restaurants, bars) recommended by a user's friends, 
--- ensuring these places are near the user's selected Airbnb.
+-- ensuring these places are near the user's selected Airbnb. (deleted)
 SELECT
     B.name AS BusinessName,
     AVG(R.stars) AS AverageRating,
@@ -226,56 +323,57 @@ LIMIT 10;
 
 
 -- Identify businesses highly rated by a user and at least two of their friends, suggesting popular spots for group activities.
-SELECT 
-    B.name AS BusinessName, 
-    AVG(R.stars) AS AverageRating,
-    COUNT(R.review_id) AS ReviewCount
-FROM 
-    Business B
-JOIN 
-    Review R ON B.business_id = R.business_id
-WHERE 
-    R.stars >= 4
-GROUP BY 
-    B.business_id
-HAVING 
-    SUM(CASE WHEN R.user_id = 'specific_user_id' THEN 1 ELSE 0 END) >= 1
-    AND COUNT(DISTINCT CASE WHEN R.user_id IN (
-        SELECT user_a FROM Befriend WHERE user_b = 'specific_user_id'
-        UNION
-        SELECT user_b FROM Befriend WHERE user_a = 'specific_user_id'
-    ) THEN R.user_id ELSE NULL END) >= 2
-ORDER BY 
-    AverageRating DESC, ReviewCount DESC
-LIMIT 10;
+-- SELECT 
+--     B.name AS BusinessName, 
+--     AVG(R.stars) AS AverageRating,
+--     COUNT(R.review_id) AS ReviewCount
+-- FROM 
+--     Business B
+-- JOIN 
+--     Review R ON B.business_id = R.business_id
+-- WHERE 
+--     R.stars >= 4
+-- GROUP BY 
+--     B.business_id
+-- HAVING 
+--     SUM(CASE WHEN R.user_id = 'specific_user_id' THEN 1 ELSE 0 END) >= 1
+--     AND COUNT(DISTINCT CASE WHEN R.user_id IN (
+--         SELECT user_a FROM Befriend WHERE user_b = 'specific_user_id'
+--         UNION
+--         SELECT user_b FROM Befriend WHERE user_a = 'specific_user_id'
+--     ) THEN R.user_id ELSE NULL END) >= 2
+-- ORDER BY 
+--     AverageRating DESC, ReviewCount DESC
+-- LIMIT 10;
 
 
--- Identify customers who have left multiple positive reviews (4 stars or higher) for a specific business over time, 
--- indicating loyalty or repeated satisfaction with the business's offerings.
-SELECT 
-    R.user_id, 
-    U.name AS UserName,
-    COUNT(R.review_id) AS PositiveReviewCount,
-    MIN(R.date) AS FirstPositiveReview,
-    MAX(R.date) AS LatestPositiveReview
-FROM 
-    Review R
-JOIN 
-    User U ON R.user_id = U.user_id
-WHERE 
-    R.business_id = 'specific_business_id' AND R.stars >= 4
-GROUP BY 
-    R.user_id, U.name
-HAVING 
-    COUNT(R.review_id) > 1 AND -- More than one positive review indicates repeat satisfaction
-    EXISTS ( -- Ensure there's a recent positive review within the last year
-        SELECT 1 
-        FROM Review R2
-        WHERE R2.user_id = R.user_id 
-        AND R2.business_id = R.business_id 
-        AND R2.stars >= 4
-        AND R2.date > CURRENT_DATE - INTERVAL '1 year'
-    )
-ORDER BY 
-    PositiveReviewCount DESC, LatestPositiveReview DESC
-LIMIT 10;
+--  rank a specific business within its various categories relative to nearby competitors, based on average star ratings
+-- WITH SpecificBusinessDetails AS (
+--     SELECT latitude, longitude
+--     FROM business
+--     WHERE business_id = 'specific_business_id'
+-- ), RankedBusinesses AS (
+--     SELECT
+--         c.category,
+--         b.business_id,
+--         b.name,
+--         b.stars,
+--         RANK() OVER (PARTITION BY c.category ORDER BY b.stars DESC) AS Rank
+--     FROM 
+--         business b
+--     JOIN 
+--         category c ON b.business_id = c.business_id,
+--         SpecificBusinessDetails sbd
+--     WHERE 
+--         ABS(b.latitude - sbd.latitude) <= 0.1
+--         AND ABS(b.longitude - sbd.longitude) <= 0.1
+-- )
+-- SELECT 
+--     category,
+--     Rank
+-- FROM 
+--     RankedBusinesses
+-- WHERE 
+--     business_id = 'specific_business_id'
+-- ORDER BY 
+--     category;
