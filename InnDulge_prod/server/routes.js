@@ -3,6 +3,7 @@ const config = require('./local_config.json')
 const uuid = require('uuid'); // generate uuid
 const bcrypt = require('bcrypt'); // encrypt secret
 const e = require('express');
+const { get } = require('./server');
 
 const connection = mysql.createConnection({
   host: config.rds_host,
@@ -1128,6 +1129,279 @@ const getOverallAnalysisByBusiness = async function(req, res) {
   res.json({'daily_reviews': dailyReviews, 'avg_stars': avgStars, 'user_preferences': userPreferences});
 }
 
+// Update new routes
+// The following functions are for the new routes, but currently NOT REVIEWED and cannot ensure they work properly
+
+// Query user's prefered entertainment category
+
+const getUserPreferenceCategory = async function(req, res) {
+  const { user_id } = req.query;
+  console.log("userPreferenceCategory IN PARAM: ", req.query);
+
+  const query = `
+  SELECT 
+    b.category, 
+    COUNT(*) AS category_count,
+    AVG(r.stars) AS average_rating
+  FROM 
+    business b
+  INNER JOIN 
+    ( -- Combine reviews and tips, focusing on high-quality reviews
+      SELECT r.business_id, r.stars
+      FROM review_business r
+      WHERE r.user_id = ? AND r.stars >= 3
+      UNION ALL
+      SELECT t.business_id, NULL AS stars -- Tips don't have stars, so we use NULL
+      FROM tip_business t
+      WHERE t.user_id = 
+    ) AS user_interactions ON b.business_id = user_interactions.business_id
+  WHERE 
+    b.is_open = 1 -- Only consider businesses that are currently operational
+  GROUP BY 
+    b.category
+  HAVING 
+    COUNT(*) > 1 AND -- Ensure the user has interacted with the category more than once
+    AVG(user_interactions.stars) IS NOT NULL AND -- Exclude categories only interacted with via tips without reviews
+    AVG(user_interactions.stars) >= 3 -- Focus on categories where the user's average review rating is high
+  ORDER BY 
+    category_count DESC, average_rating DESC
+  LIMIT 3;
+  `;
+
+  connection.query(query, [user_id, user_id], (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json({});
+    } else {
+      console.log(data);
+      res.json(data);
+    }
+  });
+}
+
+
+// Identify customers who have left multiple positive reviews (4 stars or higher) for a specific business over time, 
+// indicating loyalty or repeated satisfaction with the business's offerings.
+
+const getLoyalCustomers = async function(req, res) {
+  const { business_id } = req.query;
+  console.log("loyalCustomers IN PARAM: ", req.query);
+
+  const query = `
+  SELECT 
+      R.user_id, 
+      U.name AS UserName,
+      COUNT(R.review_id) AS PositiveReviewCount,
+      MIN(R.date) AS FirstPositiveReview,
+      MAX(R.date) AS LatestPositiveReview
+  FROM 
+      Review R
+  JOIN 
+      User U ON R.user_id = U.user_id
+  WHERE 
+      R.business_id = ? AND R.stars >= 4
+  GROUP BY 
+      R.user_id, U.name
+  HAVING 
+      COUNT(R.review_id) > 1 AND -- More than one positive review indicates repeat satisfaction
+      EXISTS ( -- Ensure there's a recent positive review within the last year
+          SELECT 1 
+          FROM Review R2
+          WHERE R2.user_id = R.user_id 
+          AND R2.business_id = R.business_id 
+          AND R2.stars >= 4
+          AND R2.date > CURRENT_DATE - INTERVAL '1 year'
+      )
+  ORDER BY 
+      PositiveReviewCount DESC, LatestPositiveReview DESC
+  LIMIT 10;
+  `;
+
+  connection.query(query, [business_id], (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json({});
+    } else {
+      console.log(data);
+      res.json(data);
+    }
+  });
+}
+
+// Shows friends' influence based on reviews of shared businesses
+
+const getInfluentialFriends = async function(req, res) {
+  const { user_id } = req.query;
+  console.log("influentialFriends IN PARAM: ", req.query);
+
+  const query = `
+  WITH FriendReviews AS (
+      SELECT
+          bf.friend_id,
+          COUNT(r.review_id) AS TotalReviews,
+          AVG(r.stars) AS AverageRating,
+          MIN(r.stars) AS MinRating  -- Universal check: Ensure all reviews are above a certain quality
+      FROM
+          (SELECT user_b AS friend_id FROM Befriend WHERE user_a = ?
+           UNION
+           SELECT user_a AS friend_id FROM Befriend WHERE user_b = ?) bf
+      JOIN Review r ON bf.friend_id = r.user_id
+      JOIN Review myr ON r.business_id = myr.business_id AND myr.user_id = ?
+      GROUP BY bf.friend_id
+      HAVING COUNT(r.review_id) > 1 AND MIN(r.stars) >= 4 -- Ensuring all reviews are at least 4 stars
+  )
+  SELECT 
+      u.name AS FriendName,
+      fr.TotalReviews,
+      ROUND(fr.AverageRating, 2) AS AvgRating
+  FROM 
+      FriendReviews fr
+  JOIN 
+      User u ON fr.friend_id = u.user_id
+  WHERE 
+      EXISTS (  -- Existential check: Ensure there is at least one business both have highly rated
+          SELECT 1 
+          FROM Review fr
+          JOIN Review ur ON fr.business_id = ur.business_id
+          WHERE fr.user_id = fr.friend_id AND ur.user_id = ?
+          AND fr.stars >= 4 AND ur.stars >= 4
+      )
+  ORDER BY 
+      fr.TotalReviews DESC, fr.AverageRating DESC
+  LIMIT 10;
+  `;
+
+  connection.query(query, [user_id, user_id, user_id, user_id], (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json({});
+    } else {
+      console.log(data);
+      res.json(data);
+    }
+  });
+}
+
+// Competitive Ranking
+// ranks within its operational categories compared to direct competitors
+// that share a substantial number of mutual customers
+
+const getCompetitiveRanking = async function(req, res) {
+  const { business_id } = req.query;
+  console.log("competitiveRanking IN PARAM: ", req.query);
+
+  const query = `
+  WITH SharedReviewers AS (
+      SELECT
+          r.business_id,
+          COUNT(DISTINCT r.user_id) AS SharedReviewersCount
+      FROM
+          Review r
+      WHERE
+          EXISTS (
+              SELECT 1 
+              FROM Review r2 
+              WHERE r2.business_id = ? AND r2.user_id = r.user_id
+          )
+      GROUP BY
+          r.business_id
+      HAVING
+          COUNT(DISTINCT r.user_id) >= 3  -- Only include businesses with at least 3 shared reviewers
+  ),
+  Rankings AS (
+      SELECT
+          c.category,
+          b.business_id,
+          b.name AS BusinessName,
+          AVG(r.stars) AS AverageRating,
+          COUNT(r.review_id) AS ReviewCount,
+          RANK() OVER (PARTITION BY c.category ORDER BY AVG(r.stars) DESC, COUNT(r.review_id) DESC) AS Rank
+      FROM
+          Business b
+      JOIN
+          Review r ON b.business_id = r.business_id
+      JOIN
+          Category c ON b.business_id = c.business_id
+      WHERE
+          b.business_id IN (SELECT business_id FROM SharedReviewers)
+      GROUP BY
+          c.category, b.business_id
+  )
+  SELECT
+      category,
+      BusinessName,
+      AverageRating,
+      ReviewCount,
+      Rank
+  FROM 
+      Rankings
+  WHERE 
+      business_id = ? AND Rank <= 10
+  ORDER BY
+      category, Rank;
+  `;
+
+  connection.query(query, [business_id, business_id], (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json({});
+    } else {
+      console.log(data);
+      res.json(data);
+    }
+  });
+}
+
+// Identify top-rated businesses (e.g., restaurants, bars) recommended by a user's friends, 
+
+const getTopRatedBusinessesByFriends = async function(req, res) {
+  const { user_id, airbnb_id } = req.query;
+  console.log("topRatedBusinessesByFriends IN PARAM: ", req.query);
+
+  const query = `
+  SELECT
+      B.name AS BusinessName,
+      AVG(R.stars) AS AverageRating,
+      COUNT(DISTINCT R.review_id) AS NumberOfReviews,
+      B.address AS Location,
+      GROUP_CONCAT(DISTINCT C.category ORDER BY C.category ASC) AS Categories
+  FROM
+      User U
+  JOIN
+      Befriend BF ON U.user_id = BF.user_a OR U.user_id = BF.user_b
+  JOIN
+      Review R ON R.user_id = BF.user_b OR R.user_id = BF.user_a
+  JOIN
+      Business B ON B.business_id = R.business_id
+  JOIN
+      Category C ON B.business_id = C.business_id
+  WHERE
+      U.user_id = ? -- Target user
+      AND EXISTS (
+          SELECT 1
+          FROM Airbnb A
+          WHERE ABS(A.latitude - B.latitude) <= 0.01 AND ABS(A.longitude - B.longitude) <= 0.01
+          AND A.airbnb_id = ? -- Chosen Airbnb
+      )
+  GROUP BY
+      B.business_id
+  HAVING
+      AVG(R.stars) >= 4.0 AND COUNT(DISTINCT R.review_id) >= 5
+  ORDER BY
+      AverageRating DESC, NumberOfReviews DESC
+  LIMIT 10;
+  `;
+
+  connection.query(query, [user_id, airbnb_id], (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json({});
+    } else {
+      console.log(data);
+      res.json(data);
+    }
+  });
+}
 
 module.exports = {
   // user control
@@ -1140,6 +1414,7 @@ module.exports = {
   getFollowingList,
   getFollowerList,
   userPreference,
+  getUserPreferenceCategory,
   // inndulge
   getPhoto,
   airbnbPropertyType,
@@ -1151,6 +1426,8 @@ module.exports = {
   businessInfo,
   recommendResidences,
   getUserAndTheirFriendsPreferences,
+  getLoyalCustomers,
+  getInfluentialFriends,
   // review system
   addResidenceReview,
   addBusinessReview,
@@ -1158,6 +1435,8 @@ module.exports = {
   deleteReview,
   getAllReviewsByUser,
   getReviewByEntity,
+  getCompetitiveRanking,
+  getTopRatedBusinessesByFriends,
   // business analysis
   getPopularBusinessCategory,
   getReviewsCountMonthlyByYear,
