@@ -31,6 +31,48 @@ app.use(session({
   },
 }));
 
+/*
+module.exports = {
+  // user control
+  userRegister,
+  userLogin,
+  userInfo,
+  follow,
+  unfollow,
+  checkFollow,
+  getFollowingList,
+  getFollowerList,
+  userPreference,
+  getUserPreferenceCategory,
+  // inndulge
+  getPhoto,
+  airbnbPropertyType,
+  businessCategory,
+  searchResidence,
+  residenceInfo,
+  recommendEntertainments,
+  searchBusiness,
+  businessInfo,
+  recommendResidences,
+  getUserAndTheirFriendsPreferences,
+  getLoyalCustomers,
+  getInfluentialFriends,
+  // review system
+  addResidenceReview,
+  addBusinessReview,
+  getReviewByUser,
+  deleteReview,
+  getAllReviewsByUser,
+  getReviewByEntity,
+  getCompetitiveRanking,
+  getTopRatedBusinessesByFriends,
+  // business analysis
+  getPopularBusinessCategory,
+  getReviewsCountMonthlyByYear,
+  getOverallAnalysisByBusiness,
+}
+*/
+
 // INNDULGE
 app.post('/user/register', routes.userRegister);
 app.post('/user/login', routes.userLogin);
@@ -40,6 +82,9 @@ app.get('/follow/check', routes.checkFollow);
 app.get('/follow/following/:follower_id', routes.getFollowingList);
 app.get('/follow/follower/:following_id', routes.getFollowerList);
 app.get('/user/:user_id', routes.userInfo);
+app.get('/user/preference/:user_id', routes.userPreference);
+app.get('/user/preference/category/:user_id', routes.getUserPreferenceCategory);
+
 app.get('/photo', routes.getPhoto);
 app.get('/airbnb/property', routes.airbnbPropertyType);
 app.get('/business/category', routes.businessCategory);
@@ -49,6 +94,9 @@ app.get('/recommend/residence', routes.recommendResidences);
 app.get('/search/business', routes.searchBusiness);
 app.get('/business/:id', routes.businessInfo);
 app.get('/recommend/business', routes.recommendEntertainments);
+app.get('/loyal/customers', routes.getLoyalCustomers);
+app.get('/influential/friends', routes.getInfluentialFriends);
+
 app.post('/review/business/add', routes.addBusinessReview);
 app.post('/review/residence/add', routes.addResidenceReview);
 app.get(['/review/business/:user_id/:business_id', '/review/residence/:user_id/:airbnb_id'],routes.getReviewByUser);
@@ -56,6 +104,8 @@ app.get('/review/user/:user_id', routes.getAllReviewsByUser);
 app.get(['/review/business/:entity_id', '/review/residence/:entity_id'], routes.getReviewByEntity);
 app.delete(['/review/business/:review_id', '/review/residence/:review_id'],routes.getReviewByUser);
 app.post('/friend/preference', routes.getUserAndTheirFriendsPreferences);
+app.get('/competitive/ranking', routes.getCompetitiveRanking);
+app.get('/top/rated/business/friends', routes.getTopRatedBusinessesByFriends);
 // Business Analysis
 app.get('/ba/popular/category', routes.getPopularBusinessCategory);
 app.get('/ba/reviews/count/:year', routes.getReviewsCountMonthlyByYear);
