@@ -3,7 +3,6 @@ const config = require('./local_config.json')
 const uuid = require('uuid'); // generate uuid
 const bcrypt = require('bcrypt'); // encrypt secret
 const e = require('express');
-const { get } = require('./server');
 
 const connection = mysql.createConnection({
   host: config.rds_host,
@@ -420,6 +419,7 @@ const getUserPreference = async function(userId) {
         console.error(err);
         reject([]);
       } else {
+        console.log(userId, data);
         resolve(data.map(item => item.category));
       }
     });
@@ -1000,16 +1000,14 @@ const getUserAndTheirFriendsPreferences = async function(req, res) {
 const getDailyReviewsByBusiness = async function(businessId, yearMonth) {
   return new Promise((resolve, reject) => {
     const query = `
-    SELECT DATE(date) as day, COUNT(*) as daily_reviews
+    SELECT DATE_FORMAT(date, '%Y-%m-%d') as day, COUNT(*) as daily_reviews
     FROM review_business
     WHERE business_id = ? AND DATE_FORMAT(date, '%Y-%m') = ?
     GROUP BY day
     ORDER BY day ASC
     `;
-
-    const formattedDate = `${yearMonth}-01`;
     
-    connection.query(query, [businessId, formattedDate], (err, data) => {
+    connection.query(query, [businessId, yearMonth], (err, data) => {
       if (err) {
         console.error(err);
         reject([]);
@@ -1027,10 +1025,8 @@ const getMonthlyAvgStarsByBusiness = async function(businessId, yearMonth) {
     FROM review_business
     WHERE business_id = ? AND DATE_FORMAT(date, '%Y-%m') = ?
     `;
-
-    const formattedDate = `${yearMonth}-01`;
     
-    connection.query(query, [businessId, formattedDate], (err, data) => {
+    connection.query(query, [businessId, yearMonth], (err, data) => {
       if (err) {
         console.error(err);
         reject([]);
@@ -1048,29 +1044,31 @@ const getUserPreferenceByBusiness = async function(businessId, yearMonth) {
     FROM review_business
     WHERE business_id = ? AND DATE_FORMAT(date, '%Y-%m') = ?
     `;
-
-    const formattedDate = `${yearMonth}-01`;
     
-    connection.query(query, [businessId, formattedDate], (err, data) => {
+    connection.query(query, [businessId, yearMonth], (err, data) => {
       if (err) {
         console.error(err);
         reject([]);
       } else {
-        const userIds = data;
-        const userPreferences = [userIds.map(userId => getUserPreference(userId))];
-        console.log(userPreferences);
+        const userIds = data.map(u=>u.user_id);
+        const preferencePromises = userIds.map(userId => getUserPreference(userId));
         const categoryCounts = {};
-        userPreferences.forEach(userPreference => {
-          userPreference.forEach(category => {
-            if (category in categoryCounts) {
-              categoryCounts[category]++;
-            } else {
-              categoryCounts[category] = 1;
-            }
+        Promise.all(preferencePromises)
+          .then(userPreferences => {
+            console.log(userIds, userPreferences);
+            userPreferences.forEach(userPreference => {
+              userPreference.forEach(category => {
+                if (category in categoryCounts) {
+                  categoryCounts[category]++;
+                } else {
+                  categoryCounts[category] = 1;
+                }
+              });
+            });
+            console.log('categoryCounts:', categoryCounts);
+            const placesArray = Object.entries(categoryCounts).map(([name, count]) => ({ name, count }));
+            resolve(placesArray);
           });
-        });
-        console.log('categoryCounts:', categoryCounts);
-        resolve(categoryCounts);
       }
     });
   });
@@ -1078,11 +1076,11 @@ const getUserPreferenceByBusiness = async function(businessId, yearMonth) {
 
 const getPopularBusinessCategory = async function(req, res) {
   const query  = `
-  SELECT c.category, COUNT(*) AS category_count
+  SELECT c.category as name , COUNT(*) AS value
   FROM review_business r
   JOIN category c ON r.business_id = c.business_id
   GROUP BY c.category
-  ORDER BY category_count DESC;
+  ORDER BY value DESC;
   `
 
   connection.query(query, (err, data) => {
@@ -1120,14 +1118,104 @@ const getReviewsCountMonthlyByYear = async function(req, res) {
 const getOverallAnalysisByBusiness = async function(req, res) {
   const businessId = req.params.business;
   const yearMonth = req.params.ym;
+  console.log(businessId, yearMonth);
 
   const dailyReviews = await getDailyReviewsByBusiness(businessId, yearMonth);
   const avgStars = await getMonthlyAvgStarsByBusiness(businessId, yearMonth);
   const userPreferences = await getUserPreferenceByBusiness(businessId, yearMonth);
 
   console.log(dailyReviews, avgStars, userPreferences);
-  res.json({'daily_reviews': dailyReviews, 'avg_stars': avgStars, 'user_preferences': userPreferences});
+  res.json({'daily_reviews': dailyReviews, 'avg_stars': avgStars[0], 'user_preferences': userPreferences});
 }
+
+const getBusinessList = async function(req, res) {
+  const query = `
+  SELECT business_id as value, name
+  FROM business
+`;
+
+  connection.query(query, (err, data) => {
+  if (err || data.length === 0) {
+    console.log(err);
+    res.json({});
+  } else {
+    console.log(data);
+    res.json(data);
+  }
+});
+} 
+
+const getloyalCustomersByBusiness = async function(req, res) {
+  const query = `
+  SELECT
+  R.business_id AS id,
+  R.user_id,
+  U.name AS userName,
+  COUNT(R.review_id) AS positiveReviewCount,
+  DATE_FORMAT(MIN(R.date), '%Y-%m') AS firstPositiveReview,
+  DATE_FORMAT(MAX(R.date), '%Y-%m') AS latestPositiveReview
+  FROM
+    review_business R
+  JOIN
+    user U ON R.user_id = U.user_id
+  WHERE
+    R.business_id = ? AND R.stars >= 4
+  GROUP BY
+    R.user_id, U.name
+  HAVING
+    COUNT(R.review_id) > 1 AND
+    EXISTS (
+        SELECT 1
+        FROM review_business R2
+        WHERE R2.user_id = R.user_id
+        AND R2.business_id = R.business_id
+        AND R2.stars >= 4
+        AND R2.date > CURRENT_DATE - INTERVAL 1 YEAR
+    )
+  ORDER BY
+    positiveReviewCount DESC, latestPositiveReview DESC
+  LIMIT 10;
+`;
+  const businessId = req.params.business;
+
+  connection.query(query, [businessId], (err, data) => {
+  if (err || data.length === 0) {
+    console.log(err);
+    res.json({});
+  } else {
+    console.log(data);
+    res.json(data);
+  }
+});
+}
+
+
+const getReviewTypeCountByBusiness = async function(req, res) {
+  const query = `
+  SELECT
+  (CASE WHEN stars >= 4 THEN 'positive' ELSE 'negative' END) AS reviewType,
+  COUNT(*) AS count
+  FROM
+    review_business
+  WHERE
+    business_id = ?
+  GROUP BY
+    reviewType;
+  `;
+  const businessId = req.params.business;
+
+  connection.query(query, [businessId], (err, data) => {
+  if (err || data.length === 0) {
+    console.log(err);
+    res.json({});
+  } else {
+    console.log(data);
+    res.json(data);
+  }
+});
+}
+
+
 
 // Update new routes
 // The following functions are for the new routes, but currently NOT REVIEWED and cannot ensure they work properly
@@ -1183,50 +1271,51 @@ const getUserPreferenceCategory = async function(req, res) {
 // Identify customers who have left multiple positive reviews (4 stars or higher) for a specific business over time, 
 // indicating loyalty or repeated satisfaction with the business's offerings.
 
-const getLoyalCustomers = async function(req, res) {
-  const { business_id } = req.query;
-  console.log("loyalCustomers IN PARAM: ", req.query);
+// 下面这个query有点问题，在上面改了一下
+// const getLoyalCustomers = async function(req, res) {
+//   const { business_id } = req.query;
+//   console.log("loyalCustomers IN PARAM: ", req.query);
 
-  const query = `
-  SELECT 
-      R.user_id, 
-      U.name AS UserName,
-      COUNT(R.review_id) AS PositiveReviewCount,
-      MIN(R.date) AS FirstPositiveReview,
-      MAX(R.date) AS LatestPositiveReview
-  FROM 
-      Review R
-  JOIN 
-      User U ON R.user_id = U.user_id
-  WHERE 
-      R.business_id = ? AND R.stars >= 4
-  GROUP BY 
-      R.user_id, U.name
-  HAVING 
-      COUNT(R.review_id) > 1 AND -- More than one positive review indicates repeat satisfaction
-      EXISTS ( -- Ensure there's a recent positive review within the last year
-          SELECT 1 
-          FROM Review R2
-          WHERE R2.user_id = R.user_id 
-          AND R2.business_id = R.business_id 
-          AND R2.stars >= 4
-          AND R2.date > CURRENT_DATE - INTERVAL '1 year'
-      )
-  ORDER BY 
-      PositiveReviewCount DESC, LatestPositiveReview DESC
-  LIMIT 10;
-  `;
+//   const query = `
+//   SELECT 
+//       R.user_id, 
+//       U.name AS UserName,
+//       COUNT(R.review_id) AS PositiveReviewCount,
+//       MIN(R.date) AS FirstPositiveReview,
+//       MAX(R.date) AS LatestPositiveReview
+//   FROM 
+//       Review R
+//   JOIN 
+//       User U ON R.user_id = U.user_id
+//   WHERE 
+//       R.business_id = ? AND R.stars >= 4
+//   GROUP BY 
+//       R.user_id, U.name
+//   HAVING 
+//       COUNT(R.review_id) > 1 AND -- More than one positive review indicates repeat satisfaction
+//       EXISTS ( -- Ensure there's a recent positive review within the last year
+//           SELECT 1 
+//           FROM Review R2
+//           WHERE R2.user_id = R.user_id 
+//           AND R2.business_id = R.business_id 
+//           AND R2.stars >= 4
+//           AND R2.date > CURRENT_DATE - INTERVAL '1 year'
+//       )
+//   ORDER BY 
+//       PositiveReviewCount DESC, LatestPositiveReview DESC
+//   LIMIT 10;
+//   `;
 
-  connection.query(query, [business_id], (err, data) => {
-    if (err || data.length === 0) {
-      console.log(err);
-      res.json({});
-    } else {
-      console.log(data);
-      res.json(data);
-    }
-  });
-}
+//   connection.query(query, [business_id], (err, data) => {
+//     if (err || data.length === 0) {
+//       console.log(err);
+//       res.json({});
+//     } else {
+//       console.log(data);
+//       res.json(data);
+//     }
+//   });
+// }
 
 // Shows friends' influence based on reviews of shared businesses
 
@@ -1403,6 +1492,7 @@ const getTopRatedBusinessesByFriends = async function(req, res) {
   });
 }
 
+
 module.exports = {
   // user control
   userRegister,
@@ -1414,7 +1504,7 @@ module.exports = {
   getFollowingList,
   getFollowerList,
   userPreference,
-  getUserPreferenceCategory,
+  getUserPreferenceCategory, //new updated
   // inndulge
   getPhoto,
   airbnbPropertyType,
@@ -1426,8 +1516,8 @@ module.exports = {
   businessInfo,
   recommendResidences,
   getUserAndTheirFriendsPreferences,
-  getLoyalCustomers,
-  getInfluentialFriends,
+  // getLoyalCustomers,
+  getInfluentialFriends, // new updated
   // review system
   addResidenceReview,
   addBusinessReview,
@@ -1435,10 +1525,13 @@ module.exports = {
   deleteReview,
   getAllReviewsByUser,
   getReviewByEntity,
-  getCompetitiveRanking,
-  getTopRatedBusinessesByFriends,
+  getCompetitiveRanking, // new updated
+  getTopRatedBusinessesByFriends, // new updated
   // business analysis
   getPopularBusinessCategory,
   getReviewsCountMonthlyByYear,
   getOverallAnalysisByBusiness,
+  getBusinessList,
+  getloyalCustomersByBusiness,
+  getReviewTypeCountByBusiness,
 }

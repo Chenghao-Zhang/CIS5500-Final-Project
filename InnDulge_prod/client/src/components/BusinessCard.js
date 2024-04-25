@@ -104,6 +104,7 @@ export default function BusinessCard({ businessId, handleClose }) {
         <Typography variant="body1" gutterBottom>
           {businessData.description}
         </Typography>
+        {/* TODO: 照片显示bug修复 */}
         {businessPics && businessPics.length > 0 && (
         <Slider {...settings}>
           {businessPics.map((item) => (

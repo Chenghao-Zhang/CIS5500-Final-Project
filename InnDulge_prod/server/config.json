@@ -1,7 +1,7 @@
 {
   "rds_host": "",
-  "rds_port": "3306",
-  "rds_user": "admin",
+  "rds_port": "",
+  "rds_user": "",
   "rds_password": "",
   "rds_db": "",
   "server_host": "localhost",

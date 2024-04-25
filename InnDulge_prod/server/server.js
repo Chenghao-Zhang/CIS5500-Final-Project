@@ -31,48 +31,6 @@ app.use(session({
   },
 }));
 
-/*
-module.exports = {
-  // user control
-  userRegister,
-  userLogin,
-  userInfo,
-  follow,
-  unfollow,
-  checkFollow,
-  getFollowingList,
-  getFollowerList,
-  userPreference,
-  getUserPreferenceCategory,
-  // inndulge
-  getPhoto,
-  airbnbPropertyType,
-  businessCategory,
-  searchResidence,
-  residenceInfo,
-  recommendEntertainments,
-  searchBusiness,
-  businessInfo,
-  recommendResidences,
-  getUserAndTheirFriendsPreferences,
-  getLoyalCustomers,
-  getInfluentialFriends,
-  // review system
-  addResidenceReview,
-  addBusinessReview,
-  getReviewByUser,
-  deleteReview,
-  getAllReviewsByUser,
-  getReviewByEntity,
-  getCompetitiveRanking,
-  getTopRatedBusinessesByFriends,
-  // business analysis
-  getPopularBusinessCategory,
-  getReviewsCountMonthlyByYear,
-  getOverallAnalysisByBusiness,
-}
-*/
-
 // INNDULGE
 app.post('/user/register', routes.userRegister);
 app.post('/user/login', routes.userLogin);
@@ -85,6 +43,7 @@ app.get('/user/:user_id', routes.userInfo);
 app.get('/user/preference/:user_id', routes.userPreference);
 app.get('/user/preference/category/:user_id', routes.getUserPreferenceCategory);
 
+
 app.get('/photo', routes.getPhoto);
 app.get('/airbnb/property', routes.airbnbPropertyType);
 app.get('/business/category', routes.businessCategory);
@@ -94,8 +53,9 @@ app.get('/recommend/residence', routes.recommendResidences);
 app.get('/search/business', routes.searchBusiness);
 app.get('/business/:id', routes.businessInfo);
 app.get('/recommend/business', routes.recommendEntertainments);
-app.get('/loyal/customers', routes.getLoyalCustomers);
+// app.get('/loyal/customers', routes.getLoyalCustomers);
 app.get('/influential/friends', routes.getInfluentialFriends);
+
 
 app.post('/review/business/add', routes.addBusinessReview);
 app.post('/review/residence/add', routes.addResidenceReview);
@@ -106,11 +66,14 @@ app.delete(['/review/business/:review_id', '/review/residence/:review_id'],route
 app.post('/friend/preference', routes.getUserAndTheirFriendsPreferences);
 app.get('/competitive/ranking', routes.getCompetitiveRanking);
 app.get('/top/rated/business/friends', routes.getTopRatedBusinessesByFriends);
+
 // Business Analysis
+app.get('/ba/business/list', routes.getBusinessList);
 app.get('/ba/popular/category', routes.getPopularBusinessCategory);
 app.get('/ba/reviews/count/:year', routes.getReviewsCountMonthlyByYear);
 app.get('/ba/analysis/:business/:ym', routes.getOverallAnalysisByBusiness);
-
+app.get('/ba/loyal_customers/:business', routes.getloyalCustomersByBusiness);
+app.get('/ba/review_type_count/:business', routes.getReviewTypeCountByBusiness);
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)

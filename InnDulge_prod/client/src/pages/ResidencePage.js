@@ -77,70 +77,94 @@ export default function ResidencePage() {
   
   return (
     <Container>
-      {selectedResidenceId && <ResidenceCard residenceId={selectedResidenceId} handleClose={() => setSelectedResidenceId(null)} />}
+      {selectedResidenceId && (
+        <ResidenceCard
+          residenceId={selectedResidenceId}
+          handleClose={() => setSelectedResidenceId(null)}
+        />
+      )}
       <h2>Search Residence</h2>
-      <Grid container spacing={6} justifyContent={"center"}>
-        <Grid item xs={8}>
-          <TextField label='Name' value={name} onChange={(e) => setName(e.target.value)} style={{ width: "100%" }}/>
-        </Grid>
-        <Grid item xs={6}>
-          <p>Bathroom</p>
-          <Slider
-            value={bathrooms}
-            min={1}
-            max={10}
-            step={1}
-            onChange={(e, newValue) => setBathrooms(newValue)}
-            valueLabelDisplay='auto'
-            valueLabelFormat={value => <div>{value}</div>}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <p>Bedrooms</p>
-          <Slider
-            value={bedrooms}
-            min={1}
-            max={10}
-            step={1}
-            onChange={(e, newValue) => setBedrooms(newValue)}
-            valueLabelDisplay='auto'
-            valueLabelFormat={value => <div>{value}</div>}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <p>Price</p>
-          <Slider
-            value={price}
-            min={0}
-            max={3000}
-            step={1}
-            onChange={(e, newValue) => setPrice(newValue)}
-            valueLabelDisplay='auto'
-            valueLabelFormat={value => <div>{value}</div>}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <InputLabel id="property-label">Property</InputLabel>
-          <Select
-            labelId='property-label'
-            multiple
-            value={property}
-            MenuProps={MenuProps}
-            onChange={(e) => setProperty(e.target.value)}
+      <Grid container spacing={5} alignItems="center">
+        <Grid item xs={12} sm={6}>
+          <Grid container spacing={5} direction="column">
+            <Grid item>
+              <TextField
+                label="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{ width: "100%", marginTop: "-16px" }}
+              />
+            </Grid>
+            <Grid item>
+              <InputLabel id="property-label">Property</InputLabel>
+              <Select
+                labelId="property-label"
+                multiple
+                value={property}
+                MenuProps={MenuProps}
+                onChange={(e) => setProperty(e.target.value)}
+                style={{ width: "100%" }}
+              >
+                {allProperty.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Grid>
+            <Grid item xs={12}>
+          <Button
+            variant="contained"
+            onClick={() => search()}
+            style={{ width: "100%" }}
           >
-            {allProperty.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
+            Search
+          </Button>
         </Grid>
-        
+          </Grid>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Grid container spacing={1} direction="column">
+            <Grid item>
+              <p>Bathroom</p>
+              <Slider
+                value={bathrooms}
+                min={1}
+                max={10}
+                step={1}
+                onChange={(e, newValue) => setBathrooms(newValue)}
+                valueLabelDisplay="auto"
+                valueLabelFormat={(value) => <div>{value}</div>}
+              />
+            </Grid>
+            <Grid item>
+              <p>Bedrooms</p>
+              <Slider
+                value={bedrooms}
+                min={1}
+                max={10}
+                step={1}
+                onChange={(e, newValue) => setBedrooms(newValue)}
+                valueLabelDisplay="auto"
+                valueLabelFormat={(value) => <div>{value}</div>}
+              />
+            </Grid>
+            <Grid item>
+              <p>Price</p>
+              <Slider
+                value={price}
+                min={0}
+                max={3000}
+                step={1}
+                onChange={(e, newValue) => setPrice(newValue)}
+                valueLabelDisplay="auto"
+                valueLabelFormat={(value) => <div>{value}</div>}
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
       </Grid>
-      
-      <Button variant="contained" onClick={() => search() } style={{ left: '50%', transform: 'translateX(-50%)' }}>
-        Search
-      </Button>
       <h2>Results</h2>
       <DataGrid
         rows={data}
