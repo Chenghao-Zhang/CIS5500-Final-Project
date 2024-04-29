@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import background from '../img/bkg.png';
 import { useParams } from 'react-router-dom';
 import { deepPurple } from '@mui/material/colors';
 import { Container, Typography, Divider, Grid, Avatar, IconButton, Button, Rating } from '@mui/material';
@@ -134,104 +135,106 @@ export default function UserProfilePage() {
   }
 
   return (
-    <Container maxWidth="lg">
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <h2>User Profile</h2>
-        <IconButton onClick={() => navigate(-1)} aria-label="back">
-          <CancelIcon />
-        </IconButton>
-      </Box>
-      <Divider />
-      <Box mt={2} mb={2} textAlign={'center'}>
-        <Grid container spacing={4} textAlign={'left'}>
-          <Grid item xs={2}>
-            <Avatar sx={{ bgcolor: deepPurple[500] }}>{user.name[0].toUpperCase()}</Avatar>
-          </Grid>
-          <Grid item xs={2}>
-            <Button variant="contained" color="primary" 
-            disabled={user_id === loginUser().userId}
-            onClick={handleFollowClick}
-            >
-                {followingStatus ? 'Unfollow' : 'Follow'}
-            </Button>
-          </Grid>
-          {/* Followers list button */}
-          <Grid item xs={2}>
-            <Button variant="outlined" onClick={handleFollowersClick}>Followers</Button>
-          </Grid>
+    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', display: 'flex', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
+      <Container maxWidth="lg" style={{backgroundColor: 'rgba(255, 255, 255, 0.85)'}}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <h2>User Profile</h2>
+          <IconButton onClick={() => navigate(-1)} aria-label="back">
+            <CancelIcon />
+          </IconButton>
+        </Box>
+        <Divider />
+        <Box mt={2} mb={2} textAlign={'center'}>
+          <Grid container spacing={4} textAlign={'left'}>
+            <Grid item xs={2}>
+              <Avatar sx={{ bgcolor: deepPurple[500] }}>{user.name[0].toUpperCase()}</Avatar>
+            </Grid>
+            <Grid item xs={2}>
+              <Button variant="contained" color="primary" 
+              disabled={user_id === loginUser().userId}
+              onClick={handleFollowClick}
+              >
+                  {followingStatus ? 'Unfollow' : 'Follow'}
+              </Button>
+            </Grid>
+            {/* Followers list button */}
+            <Grid item xs={2}>
+              <Button variant="outlined" onClick={handleFollowersClick}>Followers</Button>
+            </Grid>
 
-          {/* Following list button */}
-          <Grid item xs={2}>
-            <Button variant="outlined" onClick={handleFollowingClick}>Following</Button>
-          </Grid>
+            {/* Following list button */}
+            <Grid item xs={2}>
+              <Button variant="outlined" onClick={handleFollowingClick}>Following</Button>
+            </Grid>
 
-          <Dialog open={followersOpen} onClose={handleCloseFollowers} fullWidth maxWidth="md">
-            <DialogTitle>Followers</DialogTitle>
-            <DialogContent sx={{ overflowY: 'auto', height: '60vh', width: '500px' }}>
-              <Box sx={{ width: '100%' }}>
-                <List>
-                  {followersList.map(follower => (
-                    <ListItem key={follower.user_id}>
-                      <UserAvatar user={{id:follower.user_id, name:follower.name}}/>
-                      <ListItemText primary={follower.name} secondary={`ID: ${follower.user_id}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseFollowers}>Close</Button>
-            </DialogActions>
-          </Dialog>
+            <Dialog open={followersOpen} onClose={handleCloseFollowers} fullWidth maxWidth="md">
+              <DialogTitle>Followers</DialogTitle>
+              <DialogContent sx={{ overflowY: 'auto', height: '60vh', width: '500px' }}>
+                <Box sx={{ width: '100%' }}>
+                  <List>
+                    {followersList.map(follower => (
+                      <ListItem key={follower.user_id}>
+                        <UserAvatar user={{id:follower.user_id, name:follower.name}}/>
+                        <ListItemText primary={follower.name} secondary={`ID: ${follower.user_id}`} />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseFollowers}>Close</Button>
+              </DialogActions>
+            </Dialog>
 
-          <Dialog open={followingOpen} onClose={handleCloseFollowing} fullWidth maxWidth="md">
-            <DialogTitle>Following</DialogTitle>
-            <DialogContent sx={{ overflowY: 'auto', height: '60vh', width: '500px' }}>
-              <Box sx={{ width: '100%' }}>
-                <List>
-                  {followingList.map(following => (
-                    <ListItem key={following.user_id}>
-                      <UserAvatar user={{id:following.user_id, name:following.name}}/>
-                      <ListItemText primary={following.name} secondary={`ID: ${following.user_id}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseFollowing}>Close</Button>
-            </DialogActions>
-          </Dialog>
+            <Dialog open={followingOpen} onClose={handleCloseFollowing} fullWidth maxWidth="md">
+              <DialogTitle>Following</DialogTitle>
+              <DialogContent sx={{ overflowY: 'auto', height: '60vh', width: '500px' }}>
+                <Box sx={{ width: '100%' }}>
+                  <List>
+                    {followingList.map(following => (
+                      <ListItem key={following.user_id}>
+                        <UserAvatar user={{id:following.user_id, name:following.name}}/>
+                        <ListItemText primary={following.name} secondary={`ID: ${following.user_id}`} />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseFollowing}>Close</Button>
+              </DialogActions>
+            </Dialog>
 
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">User ID: {user.userId}</Typography>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1">User ID: {user.userId}</Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1">Name: {user.name}</Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1">Reviews: {user.review_count}</Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1">Fans: {user.fans}</Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1">Average Stars: 
+              <Rating
+                name="average-stars"
+                value={user.average_stars}
+                precision={0.1}
+                size="small"
+                readOnly
+              />
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1">Useful Compliment: {user.compliment_useful}</Typography>
+            </Grid>
           </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">Name: {user.name}</Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">Reviews: {user.review_count}</Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">Fans: {user.fans}</Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">Average Stars: 
-            <Rating
-              name="average-stars"
-              value={user.average_stars}
-              precision={0.1}
-              size="small"
-              readOnly
-            />
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">Useful Compliment: {user.compliment_useful}</Typography>
-          </Grid>
-        </Grid>
-      </Box>
-      <UserReviews userId = {user_id}/>
-    </Container>
+        </Box>
+        <UserReviews userId = {user_id}/>
+      </Container>
+    </div>
   );
 }

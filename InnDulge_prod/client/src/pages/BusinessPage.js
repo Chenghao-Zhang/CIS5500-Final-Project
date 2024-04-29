@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import background from '../img/bkg.png';
 import { Button, Container, Grid, Link, Select, TextField, Checkbox } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import MenuItem from '@mui/material/MenuItem';
@@ -65,49 +66,51 @@ export default function BusinessPage() {
   ];
   
   return (
-    <Container>
-      {selectedBusinessId && <BusinessCard businessId={selectedBusinessId} handleClose={() => setSelectedBusinessId(null)} />}
-      <h2>Search Business</h2>
-      <Grid container spacing={6} justifyContent={"center"}>
-        <Grid item xs={7}>
-          <TextField label='Name' value={name} onChange={(e) => setName(e.target.value)} style={{ width: "100%" }}/>
+    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', display: 'flex', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
+      <Container style={{backgroundColor: 'rgba(255, 255, 255, 0.85)'}}>
+        {selectedBusinessId && <BusinessCard businessId={selectedBusinessId} handleClose={() => setSelectedBusinessId(null)} />}
+        <h2>Search Business</h2>
+        <Grid container spacing={6} justifyContent={"center"}>
+          <Grid item xs={7}>
+            <TextField label='Name' value={name} onChange={(e) => setName(e.target.value)} style={{ width: "100%" }}/>
+          </Grid>
+          <Grid item xs={5} direction={'row'}>
+            <InputLabel id="preference-label" sx={{mr: 1}}>Only Preference</InputLabel>
+            <Checkbox checked={onlyPreference}
+                onChange={handleChange}
+                inputProps={{ 'aria-label': 'preference only checkbox' }}/>
+          </Grid>
+          <Grid item xs={12} display="flex" alignItems="center">
+            <InputLabel id="category-label" sx={{mr: 1}}>Category</InputLabel>
+            <Select
+              labelId='category-label'
+              multiple
+              value={selectedCategory}
+              MenuProps={MenuProps}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              {allCategory.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
         </Grid>
-        <Grid item xs={5} direction={'row'}>
-          <InputLabel id="preference-label" sx={{mr: 1}}>Only Preference</InputLabel>
-          <Checkbox checked={onlyPreference}
-              onChange={handleChange}
-              inputProps={{ 'aria-label': 'preference only checkbox' }}/>
-        </Grid>
-        <Grid item xs={12} display="flex" alignItems="center">
-          <InputLabel id="category-label" sx={{mr: 1}}>Category</InputLabel>
-          <Select
-            labelId='category-label'
-            multiple
-            value={selectedCategory}
-            MenuProps={MenuProps}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            {allCategory.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
-        </Grid>
-      </Grid>
-      
-      <Button variant="contained" onClick={() => search() } style={{ top: 15, left: '50%', transform: 'translateX(-50%)' }}>
-        Search
-      </Button>
-      <h2>Results</h2>
-      <DataGrid
-        rows={data}
-        columns={columns}
-        pageSize={pageSize}
-        rowsPerPageOptions={[5, 10, 25]}
-        onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-        autoHeight
-      />
-    </Container>
+        
+        <Button variant="contained" onClick={() => search() } style={{ top: 15, left: '50%', transform: 'translateX(-50%)' }}>
+          Search
+        </Button>
+        <h2>Results</h2>
+        <DataGrid
+          rows={data}
+          columns={columns}
+          pageSize={pageSize}
+          rowsPerPageOptions={[5, 10, 25]}
+          onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+          autoHeight
+        />
+      </Container>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import background from '../img/bkg.png';
 import { Container, Grid, Typography, Button, Card, CardContent, Rating } from '@mui/material';
 import { loginUser } from '../helpers/cookie';
 import { apiCall } from '../helpers/apicall';
@@ -85,16 +86,18 @@ export default function FriendList() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt:3 }}>
-        <h2>Play Together</h2>
-        <Grid container spacing={1} justifyContent={'center'}>
-            <Grid item xs={4} md={3} justifyContent={'flex-end'}>
-                {friendsData.map(renderFriendItem)}
-            </Grid>
-            <Grid item xs={8} md={9} justifyContent={'flex-start'}>
-                {selectedFriendId && renderBusinesses(selectedFriendId)}
-            </Grid>
-        </Grid>
-    </Container>
+    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', display: 'flex', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
+      <Container maxWidth="lg" sx={{ mt:3 }} style={{backgroundColor: 'rgba(255, 255, 255, 0.85)'}}>
+          <h2>Play Together</h2>
+          <Grid container spacing={1} justifyContent={'center'}>
+              <Grid item xs={4} md={3} justifyContent={'flex-end'}>
+                  {friendsData.map(renderFriendItem)}
+              </Grid>
+              <Grid item xs={8} md={9} justifyContent={'flex-start'}>
+                  {selectedFriendId && renderBusinesses(selectedFriendId)}
+              </Grid>
+          </Grid>
+      </Container>
+    </div>
   );
 };
