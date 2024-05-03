@@ -15,6 +15,39 @@ WHERE
 ORDER BY score DESC
 LIMIT pageSize OFFSET ofst;
 
+'''
+WITH tmp1 AS (
+    SELECT business_id, name, latitude, longitude, stars, review_count,
+           radians(latitude) AS lat_rad,
+           radians(longitude) AS lon_rad
+    FROM business
+    WHERE (name LIKE '%content%')
+       OR (category LIKE '%content%')
+       OR (category IN userPreference)
+),
+tmp2 AS (
+    SELECT *,
+           radians(user_lat) AS user_lat_rad,
+           radians(user_lon) AS user_lon_rad
+    FROM tmp1
+),
+ScoredBusiness AS (
+    SELECT business_id, name, latitude, longitude, stars, review_count,
+           (0.4 * stars) + 
+           (0.3 * review_count) + 
+           (0.3 * 2 * 6371 * 
+            ASIN(SQRT(POW(SIN((lat_rad - user_lat_rad) / 2), 2) +
+                      COS(user_lat_rad) * 
+                      COS(lat_rad) * 
+                      POW(SIN((lon_rad - user_lon_rad) / 2), 2)))) AS score
+    FROM tmp2
+)
+SELECT *
+FROM ScoredBusiness
+ORDER BY score DESC
+LIMIT pageSize OFFSET ofst;
+'''
+
 -- Find accommodation based on search content and user preferences, and sort based on comprehensive evaluations
 SELECT *,
     (0.4 * stars) +
