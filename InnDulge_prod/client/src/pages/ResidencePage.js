@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import background from '../img/bkg.png';
-import { Button, Container, Grid, Link, Select, Slider, TextField } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { Button, Container, Grid, Link, Select, Slider, TextField, Card, CardContent, Typography, Pagination } from '@mui/material';
+// import { DataGrid } from '@mui/x-data-grid';
 import MenuItem from '@mui/material/MenuItem';
 import InputLabel from '@mui/material/InputLabel';
 import { loginUser } from '../helpers/cookie';
@@ -29,6 +29,8 @@ export default function ResidencePage() {
   const [price, setPrice] = useState([0, 3000]);
   const [property, setProperty] = useState([]);
   const [allProperty, setAllProperty] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
 
   // Load Airbnb Property types
   useEffect(() => {
@@ -59,23 +61,113 @@ export default function ResidencePage() {
       .then(resJson => {
         const residenceWithId = resJson.map((residence) => ({ id: residence.airbnb_id, ...residence }));
         setData(residenceWithId);
+        setTotalPages(Math.ceil(resJson.length / pageSize));
       });
   }
 
-  const columns = [
-    { field: 'name', headerName: 'Name', width: 300, renderCell: (params) => (
-        <Link onClick={() => setSelectedResidenceId(params.row.airbnb_id)}>{params.value}</Link>
-    ) },
-    { field: 'stars', headerName: 'Stars' },
-    { field: 'review_count', headerName: 'Review Count' },
-    { field: 'bathrooms', headerName: 'Bathrooms' },
-    { field: 'bedrooms', headerName: 'Bedrooms' },
-    { field: 'beds', headerName: 'Beds' },
-    { field: 'price', headerName: 'Price' },
-    { field: 'property_type', headerName: 'Property Type' },
-    { field: 'description', headerName: 'Description' },
-  ]
+  // const columns = [
+  //   { field: 'name', headerName: 'Name', width: 300, renderCell: (params) => (
+  //       <Link onClick={() => setSelectedResidenceId(params.row.airbnb_id)}>{params.value}</Link>
+  //   ) },
+  //   { field: 'stars', headerName: 'Stars' },
+  //   { field: 'review_count', headerName: 'Review Count' },
+  //   { field: 'bathrooms', headerName: 'Bathrooms' },
+  //   { field: 'bedrooms', headerName: 'Bedrooms' },
+  //   { field: 'beds', headerName: 'Beds' },
+  //   { field: 'price', headerName: 'Price' },
+  //   { field: 'property_type', headerName: 'Property Type' },
+  //   { field: 'description', headerName: 'Description' },
+  // ]
+
+  // Custom component to render each row as a card
+  const CustomResidenceCardRow = ({ data, pageSize }) => {
+    const [hoveredCard, setHoveredCard] = useState(null);
+
+    if (data.length === 0) {
+      return (
+        <Grid container justifyContent="center">
+          <Grid item xs={12} sm={9} md={8} lg={7} style={{ padding: "16px" }}>
+            <Card style={{ width: "100%", height: "100%" }}>
+              <CardContent style={{ textAlign: "center", height: "100%", alignItems: "center" }}>
+                <Typography variant="h6" textAlign={'center'}>No Results</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      );
+    }
+
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, data.length);
+    const slicedData = data.slice(startIndex, endIndex);
+
+    // Define inline styles for the card
+    const getCardStyle = (index) => ({
+      transition: 'transform 0.3s',
+      cursor: 'pointer',
+      transform: hoveredCard === index ? 'scale(1.05)' : 'scale(1)',
+    });
   
+    // Event handlers
+    const handleMouseEnter = (index) => {
+      setHoveredCard(index);
+    };
+  
+    const handleMouseLeave = () => {
+      setHoveredCard(null);
+    };
+  
+    return (
+      <Grid container spacing={2} justifyContent="center">
+        {slicedData.map((row, index) => (
+          <Grid key={row.id} item xs={10} sm={10} md={10} lg={10}>
+            <Card alignItems={"center"}
+                  style={getCardStyle(index)}
+                  onMouseEnter={() => handleMouseEnter(index)}
+                  onMouseLeave={handleMouseLeave}
+                  >
+              <CardContent onClick={() => setSelectedResidenceId(row.airbnb_id)}>
+                <Typography variant="h6" component="div">
+                  <Link>{row.name}</Link>
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Stars: {row.stars}
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Review Count: {row.review_count}
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Bathrooms: {row.bathrooms}
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Bedrooms: {row.bedrooms}
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Beds: {row.beds}
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Price: {row.price}
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Property Type: {row.property_type}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    );
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangePageSize = (event) => {
+    setPageSize(event.target.value);
+    setPage(1);
+  }
+
   return (
     <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
       <Container style={{backgroundColor: 'rgba(255, 255, 255, 0.85)', overflow: 'auto'}}>
@@ -163,19 +255,36 @@ export default function ResidencePage() {
                   valueLabelFormat={(value) => <div>{value}</div>}
                 />
               </Grid>
+              <Grid item>
+                <InputLabel id="page-size-label">Page Size</InputLabel>
+                <Select
+                  labelId="page-size-label"
+                  value={pageSize}
+                  onChange={handleChangePageSize}
+                  style={{ width: "100%" }}
+                >
+                  <MenuItem value={5}>5</MenuItem>
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={25}>25</MenuItem>
+                </Select>
+              </Grid>
             </Grid>
           </Grid>
 
         </Grid>
         <h2>Results</h2>
-        <DataGrid
+        {/* <DataGrid
           rows={data}
           columns={columns}
           pageSize={pageSize}
           rowsPerPageOptions={[5, 10, 25]}
           onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
           autoHeight
-        />
+        /> */}
+        <CustomResidenceCardRow data={data} pageSize={pageSize} />
+        <Grid container justifyContent="center" style={{ padding: '16px' }}>
+          <Pagination count={totalPages} page={page} onChange={handleChangePage} />
+        </Grid>
       </Container>
     </div>
   );

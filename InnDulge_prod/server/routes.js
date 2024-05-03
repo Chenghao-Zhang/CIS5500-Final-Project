@@ -494,6 +494,17 @@ const getPhoto = async function(req, res) {
 }
 
 const airbnbPropertyType = async function(req, res) {
+  // check cache
+  const cacheKey = 'airbnbPropertyType';
+  const cacheData = getCache(cacheKey);
+  if (cacheData) {
+    console.log('Cache hit:', cacheKey);
+    res.json(cacheData);
+    return;
+  }
+
+  console.log('Cache miss:', cacheKey);
+
   connection.query('SELECT DISTINCT property_type FROM airbnb', (err, data) => {
   if (err || data.length === 0) {
     console.log(err);
@@ -502,12 +513,25 @@ const airbnbPropertyType = async function(req, res) {
     const propertyTypes = data.map((row) => row.property_type);
     console.log(propertyTypes);
     res.json({'propertyTypes': propertyTypes});
+    setCache(cacheKey, {'propertyTypes': propertyTypes});
+    console.log('Cache set:', cacheKey);
   }
 });
 }
 
 
 const businessCategory = async function(req, res) {
+  // check cache
+  const cacheKey = 'businessCategory';
+  const cacheData = getCache(cacheKey);
+  if (cacheData) {
+    console.log('Cache hit:', cacheKey);
+    res.json(cacheData);
+    return;
+  }
+
+  console.log('Cache miss:', cacheKey);
+
   connection.query('SELECT DISTINCT category FROM category', (err, data) => {
   if (err || data.length === 0) {
     console.log(err);
@@ -516,6 +540,8 @@ const businessCategory = async function(req, res) {
     const categories = data.map((row) => row.category);
     console.log(categories);
     res.json({'categories': categories});
+    setCache(cacheKey, {'categories': categories});
+    console.log('Cache set:', cacheKey);
   }
 });
 }
@@ -523,6 +549,18 @@ const businessCategory = async function(req, res) {
 // Search Residence
 const searchResidence = async function(req, res) {
   const { name, min_bathrooms, max_bathrooms, min_bedrooms, max_bedrooms, min_price, max_price, property, user_id } = req.query;
+
+  // check cache
+  const cacheKey = `searchResidence:${name}:${min_bathrooms}:${max_bathrooms}:${min_bedrooms}:${max_bedrooms}:${min_price}:${max_price}:${property}:${user_id}`;
+  const cacheData = getCache(cacheKey);
+  if (cacheData) {
+    console.log('Cache hit:', cacheKey);
+    res.json(cacheData);
+    return;
+  }
+
+  console.log('Cache miss:', cacheKey);
+
   console.log("searchResidence IN PARAM: ", req.query)
   // TODO: add user info、pagesize、offset
   const query = `
@@ -560,6 +598,8 @@ const searchResidence = async function(req, res) {
   } else {
     console.log(data);
     res.json(data);
+    setCache(cacheKey, data);
+    console.log('Cache set:', cacheKey);
   }
 });
 }
@@ -614,6 +654,18 @@ const recommendEntertainments = async function(req, res) {
 // Get residence details
 const residenceInfo = async function(req, res) {
   const id = req.params.id;
+
+  // check cache
+  const cacheKey = `residenceInfo:${id}`;
+  const cacheData = getCache(cacheKey);
+  if (cacheData) {
+    console.log('Cache hit:', cacheKey);
+    res.json(cacheData);
+    return;
+  }
+
+  console.log('Cache miss:', cacheKey);
+
   console.log("residenceInfo IN PARAM: ", id)
 
   const query = `
@@ -648,6 +700,8 @@ const residenceInfo = async function(req, res) {
   } else {
     console.log(data);
     res.json(data[0]);
+    setCache(cacheKey, data[0]);
+    console.log('Cache set:', cacheKey);
   }
 });
 }
