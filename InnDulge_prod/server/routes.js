@@ -622,6 +622,18 @@ const getPhoto = async function(req, res) {
   const { id, entity } = req.query;
   const tdb = entity==='residence'?'photo_airbnb':'photo_business'
   const tid = entity==='residence'?'airbnb_id':'business_id'
+
+  // check cache
+  const cacheKey = `getPhoto:${id}:${entity}`;
+  const cacheData = getCache(cacheKey);
+  if (cacheData) {
+    console.log('Cache hit:', cacheKey);
+    res.json(cacheData);
+    return;
+  }
+
+  console.log('Cache miss:', cacheKey);
+
   console.log("getPhoto IN PARAM: ", req.query)
 
   const query = `
@@ -638,6 +650,8 @@ const getPhoto = async function(req, res) {
   } else {
     console.log(data);
     res.json(data);
+    setCache(cacheKey, data);
+    console.log('Cache set:', cacheKey);
   }
 });
 }
@@ -860,6 +874,17 @@ const searchBusiness = async function(req, res) {
   const { name = '', category = '', user_id, only_preference} = req.query;
   console.log("searchBusiness IN PARAM: ", req.query);
 
+  // check cache
+  const cacheKey = `searchBusiness:${name}:${category}:${user_id}:${only_preference}`;
+  const cacheData = getCache(cacheKey);
+  if (cacheData) {
+    console.log('Cache hit:', cacheKey);
+    res.json(cacheData);
+    return;
+  }
+
+  console.log('Cache miss:', cacheKey);
+
   try {
     const userPreference = await getUserPreference(user_id) || [];
     console.log('userPreference', userPreference);
@@ -911,6 +936,8 @@ const searchBusiness = async function(req, res) {
       } else {
         console.log(data);
         res.json(data);
+        setCache(cacheKey, data);
+        console.log('Cache set:', cacheKey);
       }
     });
   } catch (error) {

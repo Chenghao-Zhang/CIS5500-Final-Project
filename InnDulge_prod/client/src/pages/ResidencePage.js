@@ -116,6 +116,8 @@ export default function ResidencePage() {
     const handleMouseLeave = () => {
       setHoveredCard(null);
     };
+
+    const MAX_LINES = 8;
   
     return (
       <Grid container spacing={2} justifyContent="center">
@@ -127,30 +129,41 @@ export default function ResidencePage() {
                   onMouseLeave={handleMouseLeave}
                   >
               <CardContent onClick={() => setSelectedResidenceId(row.airbnb_id)}>
-                <Typography variant="h6" component="div">
-                  <Link>{row.name}</Link>
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Stars: {row.stars}
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Review Count: {row.review_count}
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Bathrooms: {row.bathrooms}
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Bedrooms: {row.bedrooms}
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Beds: {row.beds}
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Price: {row.price}
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Property Type: {row.property_type}
-                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" component="div">
+                      <Link>{row.name}</Link>
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={5}>
+                    <Typography variant="body1" color="textSecondary">
+                      Stars: {row.stars}
+                    </Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      Review Count: {row.review_count}
+                    </Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      Bathrooms: {row.bathrooms}
+                    </Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      Bedrooms: {row.bedrooms}
+                    </Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      Beds: {row.beds}
+                    </Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      Price: {row.price}
+                    </Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      Property Type: {row.property_type}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={7}>
+                  <Typography variant="body1" color="textSecondary" style={{overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: MAX_LINES, WebkitBoxOrient: 'vertical', top: '16px'}}>
+                    Description: <br /> {row.description}
+                  </Typography>
+                  </Grid>
+                </Grid>
               </CardContent>
             </Card>
           </Grid>

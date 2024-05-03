@@ -48,7 +48,7 @@ app.get('/photo', routes.getPhoto);
 app.get('/airbnb/property', routes.airbnbPropertyType); // added cache
 app.get('/business/category', routes.businessCategory); // added cache
 app.get('/search/residence', routes.searchResidence); // added cache
-app.get('/residence/:id', routes.residenceInfo);
+app.get('/residence/:id', routes.residenceInfo); // added cache
 app.get('/recommend/residence', routes.recommendResidences);
 app.get('/search/business', routes.searchBusiness);
 app.get('/business/:id', routes.businessInfo);

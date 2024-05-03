@@ -80,23 +80,31 @@ export default function ResidenceCard({ residenceId, handleClose }) {
           background: 'white',
           // borderRadius: '16px',
           border: '3px solid #000',
-          width: 650,
-          height:700,
+          width: '60%',
+          height: '90vh',
           textAlign: 'left',
           overflowWrap: 'break-word',
           overflowY: 'auto',
           overflowX: 'auto',
+          marginTop: '20vh',
         }}
       >
         <Typography variant="h4">{residenceData.name}</Typography>
+
+        <br />
+
         <Typography variant="subtitle1">
-          Address: {residenceData.address}, {residenceData.city}, {residenceData.state}
+          <span style={{ fontWeight: 'bold' }}>Address: </span> 
+          {residenceData.address}, 
+          {residenceData.city}, 
+          {residenceData.state}
         </Typography>
         <Typography variant="body1">
-          Property Type: {residenceData.property_type}
+          <span style={{ fontWeight: 'bold' }}>Property Type: </span> 
+          {residenceData.property_type}
         </Typography>
         <Typography variant="body1">
-          Stars: 
+          <span style={{ fontWeight: 'bold' }}>Stars: </span>
           <Rating
               name="average-stars"
               value={Number(residenceData.stars)}
@@ -106,11 +114,17 @@ export default function ResidenceCard({ residenceId, handleClose }) {
           /> <span>({residenceData.review_count} reviews)</span>
         </Typography>
         <Typography variant="body1">
-          Bedrooms: {residenceData.bedrooms}, Bathrooms: {residenceData.bathrooms}, Beds: {residenceData.beds}
+          <span style={{ fontWeight: 'bold' }}>Bedrooms:</span> {residenceData.bedrooms} <br />
+          <span style={{ fontWeight: 'bold' }}>Bathrooms:</span> {residenceData.bathrooms} <br />
+          <span style={{ fontWeight: 'bold' }}>Beds:</span> {residenceData.beds}
         </Typography>
         <Typography variant="body1">
-          Price: {formatPrice(residenceData.price)}
+          <span style={{ fontWeight: 'bold' }}>Price: </span>
+          {formatPrice(residenceData.price)}
         </Typography>
+
+        <br />
+
         <Typography variant="body1" gutterBottom>
           {residenceData.description}
         </Typography>
