@@ -1448,33 +1448,22 @@ const getloyalCustomersByBusiness = async function(req, res) {
 
   const query = `
   SELECT
-    R.business_id AS id,
-    R.user_id,
+    c.business_id AS id,
+    c.user_id,
     U.name AS userName,
-    AVG(R.stars) AS AverageStars,
-    COUNT(R.review_id) AS positiveReviewCount,
-    DATE_FORMAT(MIN(R.date), '%Y-%m') AS firstPositiveReview,
-    DATE_FORMAT(MAX(R.date), '%Y-%m') AS latestPositiveReview
+    c.AverageStars,
+    c.positiveReviewCount,
+    c.firstPositiveReview,
+    c.latestPositiveReview
   FROM
-    review_business R
+    cached_user_reviews c
   JOIN
-    user U ON R.user_id = U.user_id
+    user U ON c.user_id = U.user_id
   WHERE
-    R.business_id = 112511 AND R.stars >= 4
-  GROUP BY
-    R.user_id, U.name
-  HAVING
-    COUNT(R.review_id) > 1 AND
-    EXISTS (
-        SELECT 1
-        FROM review_business R2
-        WHERE R2.user_id = R.user_id
-        AND R2.business_id = R.business_id
-        AND R2.stars >= 4
-        AND R2.date > '2015-01-01'
-    )
+    c.business_id = ? AND
+    c.positiveReviewCount > 1
   ORDER BY
-    positiveReviewCount DESC, latestPositiveReview DESC
+    c.positiveReviewCount DESC, c.latestPositiveReview DESC
   LIMIT 10;
   `;
   const businessId = req.params.business;
@@ -1804,11 +1793,11 @@ const getTopRatedBusinessesByFriends = async function(req, res) {
     // user_id: om5ZiponkpRqUNa3pVPiRg $ airbnb_id 344 for demo
   const query = `
   SELECT
-    b.name AS BusinessName,
+    bd.BusinessName,
     AVG(rb.stars) AS AverageRating,
     COUNT(DISTINCT rb.review_id) AS NumberOfReviews,
-    l.address AS Location,
-    GROUP_CONCAT(DISTINCT c.category ORDER BY c.category ASC) AS Categories
+    bd.Location,
+    bd.Categories
   FROM
     user u
   JOIN
@@ -1816,21 +1805,17 @@ const getTopRatedBusinessesByFriends = async function(req, res) {
   JOIN
     review_business rb ON rb.user_id = f.following_id
   JOIN
-    business b ON b.business_id = rb.business_id
-  JOIN
-    category c ON b.business_id = c.business_id
-  JOIN
-    locations l ON l.longitude = b.longitude AND l.latitude = b.latitude
+    cached_business_details bd ON bd.business_id = rb.business_id
   WHERE
     u.user_id = ? -- Target user
     AND EXISTS (
-      SELECT 1
-      FROM airbnb a
-      WHERE ABS(a.latitude - b.latitude) <= 2 AND ABS(a.longitude - b.longitude) <= 2
-      AND a.airbnb_id = ? -- Chosen Airbnb
+        SELECT 1
+        FROM airbnb a
+        WHERE ABS(a.latitude - bd.latitude) <= 2 AND ABS(a.longitude - bd.longitude) <= 2
+        AND a.airbnb_id = ? -- Chosen Airbnb
     )
   GROUP BY
-    b.business_id
+    bd.business_id
   HAVING
     AVG(rb.stars) >= 4.0 AND COUNT(DISTINCT rb.review_id) >= 5
   ORDER BY
