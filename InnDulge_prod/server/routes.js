@@ -1348,6 +1348,11 @@ const getBusinessList = async function(req, res) {
 });
 } 
 
+
+// Identify customers who have left multiple positive reviews (4 stars or higher) for a specific business over time, 
+// indicating loyalty or repeated satisfaction with the business's offerings.
+// page: business analysis
+// business_id: 112511 for demo
 const getloyalCustomersByBusiness = async function(req, res) {
   // check cache
   const cacheKey = 'loyalCustomersByBusiness_' + req.params.business;
@@ -1362,18 +1367,19 @@ const getloyalCustomersByBusiness = async function(req, res) {
 
   const query = `
   SELECT
-  R.business_id AS id,
-  R.user_id,
-  U.name AS userName,
-  COUNT(R.review_id) AS positiveReviewCount,
-  DATE_FORMAT(MIN(R.date), '%Y-%m') AS firstPositiveReview,
-  DATE_FORMAT(MAX(R.date), '%Y-%m') AS latestPositiveReview
+    R.business_id AS id,
+    R.user_id,
+    U.name AS userName,
+    AVG(R.stars) AS AverageStars,
+    COUNT(R.review_id) AS positiveReviewCount,
+    DATE_FORMAT(MIN(R.date), '%Y-%m') AS firstPositiveReview,
+    DATE_FORMAT(MAX(R.date), '%Y-%m') AS latestPositiveReview
   FROM
     review_business R
   JOIN
     user U ON R.user_id = U.user_id
   WHERE
-    R.business_id = ? AND R.stars >= 4
+    R.business_id = 112511 AND R.stars >= 4
   GROUP BY
     R.user_id, U.name
   HAVING
@@ -1384,12 +1390,12 @@ const getloyalCustomersByBusiness = async function(req, res) {
         WHERE R2.user_id = R.user_id
         AND R2.business_id = R.business_id
         AND R2.stars >= 4
-        AND R2.date > CURRENT_DATE - INTERVAL 1 YEAR
+        AND R2.date > '2015-01-01'
     )
   ORDER BY
     positiveReviewCount DESC, latestPositiveReview DESC
   LIMIT 10;
-`;
+  `;
   const businessId = req.params.business;
 
   connection.query(query, [businessId], (err, data) => {
@@ -1523,55 +1529,55 @@ const getUserPreferenceCategory = async function(req, res) {
 }
 
 
-// Identify customers who have left multiple positive reviews (4 stars or higher) for a specific business over time, 
-// indicating loyalty or repeated satisfaction with the business's offerings.
 // page: business analysis
 // 下面这个query有点问题，在上面改了一下
-const getLoyalCustomers = async function(req, res) {
-  const { business_id } = req.query;
-  console.log("loyalCustomers IN PARAM: ", req.query);
+// const getLoyalCustomers = async function(req, res) {
+//   const { business_id } = req.query;
+//   console.log("loyalCustomers IN PARAM: ", req.query);
 
-  // business_id: 112511 for demo
-  const query = `
-  SELECT
-    r.user_id,
-    u.name AS UserName,
-    COUNT(r.review_id) AS PositiveReviewCount,
-    AVG(r.stars) AS AverageStars, -- new
-    MIN(r.date) AS FirstPositiveReview,
-    MAX(r.date) AS LatestPositiveReview -- new
-  FROM
-    review_business r
-  JOIN
-    user u ON r.user_id = u.user_id
-  WHERE
-    r.business_id = ? AND r.stars >= 4
-  GROUP BY
-    r.user_id, u.name
-  HAVING
-    COUNT(r.review_id) > 1 AND
-    EXISTS (
-        SELECT 1
-        FROM review_business r2
-        WHERE r2.user_id = r.user_id
-        AND r2.business_id = ?
-        AND r2.stars >= 4
-        AND r2.date > '2015-01-01')
-  ORDER BY
-    PositiveReviewCount DESC, LatestPositiveReview DESC
-  LIMIT 10;
-  `;
+//   // business_id: 112511 for demo
+//   const query = `
+//   SELECT
+//     r.user_id,
+//     u.name AS UserName,
+//     COUNT(r.review_id) AS PositiveReviewCount,
+//     AVG(r.stars) AS AverageStars, -- new
+//     MIN(r.date) AS FirstPositiveReview,
+//     MAX(r.date) AS LatestPositiveReview -- new
+//   FROM
+//     review_business r
+//   JOIN
+//     user u ON r.user_id = u.user_id
+//   WHERE
+//     r.business_id = ? AND r.stars >= 4
+//   GROUP BY
+//     r.user_id, u.name
+//   HAVING
+//     COUNT(r.review_id) > 1 AND
+//     EXISTS (
+//         SELECT 1
+//         FROM review_business r2
+//         WHERE r2.user_id = r.user_id
+//         AND r2.business_id = ?
+//         AND r2.stars >= 4
+//         AND r2.date > '2015-01-01')
+//   ORDER BY
+//     PositiveReviewCount DESC, LatestPositiveReview DESC
+//   LIMIT 10;
+//   `;
 
-  connection.query(query, [business_id], (err, data) => {
-    if (err || data.length === 0) {
-      console.log(err);
-      res.json({});
-    } else {
-      console.log(data);
-      res.json(data);
-    }
-  });
-}
+//   connection.query(query, [business_id], (err, data) => {
+//     if (err || data.length === 0) {
+//       console.log(err);
+//       res.json({});
+//     } else {
+//       console.log(data);
+//       res.json(data);
+//     }
+//   });
+// }
+
+
 
 // Shows friends' influence based on reviews of shared businesses
 // page: user profile
