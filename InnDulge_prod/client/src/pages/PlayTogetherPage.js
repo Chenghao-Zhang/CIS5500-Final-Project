@@ -86,8 +86,8 @@ export default function FriendList() {
   };
 
   return (
-    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', display: 'flex', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
-      <Container maxWidth="lg" sx={{ mt:3 }} style={{backgroundColor: 'rgba(255, 255, 255, 0.85)'}}>
+    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
+      <Container maxWidth="lg" sx={{ mt:3 }} style={{backgroundColor: 'rgba(255, 255, 255, 0.85)', overflow: 'auto'}}>
           <h2>Play Together</h2>
           <Grid container spacing={1} justifyContent={'center'}>
               <Grid item xs={4} md={3} justifyContent={'flex-end'}>

@@ -16,7 +16,8 @@
     "mysql2": "^3.9.3",
     "nodemon": "^2.0.20",
     "supertest": "^6.3.3",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "node-cache": "^5.1.2"
   },
   "devDependencies": {
     "jest": "^29.3.1"

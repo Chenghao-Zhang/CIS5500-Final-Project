@@ -64,16 +64,16 @@ app.get('/review/user/:user_id', routes.getAllReviewsByUser);
 app.get(['/review/business/:entity_id', '/review/residence/:entity_id'], routes.getReviewByEntity);
 app.delete(['/review/business/:review_id', '/review/residence/:review_id'],routes.getReviewByUser);
 app.post('/friend/preference', routes.getUserAndTheirFriendsPreferences);
-app.get('/competitive/ranking', routes.getCompetitiveRanking);
+app.get('/competitive/ranking', routes.getCompetitiveRanking); // added cache
 app.get('/top/rated/business/friends', routes.getTopRatedBusinessesByFriends);
 
 // Business Analysis
-app.get('/ba/business/list', routes.getBusinessList);
-app.get('/ba/popular/category', routes.getPopularBusinessCategory);
-app.get('/ba/reviews/count/:year', routes.getReviewsCountMonthlyByYear);
-app.get('/ba/analysis/:business/:ym', routes.getOverallAnalysisByBusiness);
-app.get('/ba/loyal_customers/:business', routes.getloyalCustomersByBusiness);
-app.get('/ba/review_type_count/:business', routes.getReviewTypeCountByBusiness);
+app.get('/ba/business/list', routes.getBusinessList); // added cache
+app.get('/ba/popular/category', routes.getPopularBusinessCategory); // added cache
+app.get('/ba/reviews/count/:year', routes.getReviewsCountMonthlyByYear); // added cache
+app.get('/ba/analysis/:business/:ym', routes.getOverallAnalysisByBusiness); // added cache
+app.get('/ba/loyal_customers/:business', routes.getloyalCustomersByBusiness); // added cache
+app.get('/ba/review_type_count/:business', routes.getReviewTypeCountByBusiness); // added cache
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)

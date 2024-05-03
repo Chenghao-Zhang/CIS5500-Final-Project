@@ -106,7 +106,7 @@ export default function AnalyticsDashboardPage () {
   ];
 
   return (
-    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', display: 'flex', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
+    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
     <Container maxWidth="lg" sx={{ mt:3 }}>
     <Grid container spacing={1} justifyContent="center" style={{backgroundColor: 'rgba(255, 255, 255, 0.85)'}}>
         <Grid item xs={6} md={4} display="flex" alignItems="center" justifyContent="center">

@@ -135,7 +135,7 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', display: 'flex', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
+    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
       <Container maxWidth="lg" style={{backgroundColor: 'rgba(255, 255, 255, 0.85)'}}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <h2>User Profile</h2>

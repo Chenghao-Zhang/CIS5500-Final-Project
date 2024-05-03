@@ -66,8 +66,8 @@ export default function BusinessPage() {
   ];
   
   return (
-    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', display: 'flex', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
-      <Container style={{backgroundColor: 'rgba(255, 255, 255, 0.85)'}}>
+    <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
+      <Container style={{backgroundColor: 'rgba(255, 255, 255, 0.85)', overflow: 'auto'}}>
         {selectedBusinessId && <BusinessCard businessId={selectedBusinessId} handleClose={() => setSelectedBusinessId(null)} />}
         <h2>Search Business</h2>
         <Grid container spacing={6} justifyContent={"center"}>

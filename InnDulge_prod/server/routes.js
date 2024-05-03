@@ -3,6 +3,7 @@ const config = require('./local_config.json')
 const uuid = require('uuid'); // generate uuid
 const bcrypt = require('bcrypt'); // encrypt secret
 const e = require('express');
+const { setCache, getCache } = require('./cache');
 
 const connection = mysql.createConnection({
   host: config.rds_host,
@@ -1075,6 +1076,17 @@ const getUserPreferenceByBusiness = async function(businessId, yearMonth) {
 };
 
 const getPopularBusinessCategory = async function(req, res) {
+  // check cache
+  const cacheKey = 'popularBusinessCategory';
+  const cachedData = getCache(cacheKey);
+  if (cachedData) {
+    console.log('Cache hit:' + cacheKey);
+    res.json(cachedData);
+    return;
+  }
+
+  console.log('Cache miss:' + cacheKey);
+
   const query  = `
   SELECT c.category as name , COUNT(*) AS value
   FROM review_business r
@@ -1090,11 +1102,24 @@ const getPopularBusinessCategory = async function(req, res) {
   } else {
     console.log(data);
     res.json({'categories': data});
+    setCache(cacheKey, {'categories': data});
+    console.log('Cache set:' + cacheKey);
   }
 });
 }
 
 const getReviewsCountMonthlyByYear = async function(req, res) {
+  // check cache
+  const cacheKey = 'reviewsCountMonthlyByYear_' + req.params.year;
+  const cachedData = getCache(cacheKey);
+  if (cachedData) {
+    console.log('Cache hit:' + cacheKey);
+    res.json(cachedData);
+    return;
+  }
+
+  console.log('Cache miss:' + cacheKey);
+
   const query = `
   SELECT DATE_FORMAT(date, '%Y-%m') as month, COUNT(*) as total_reviews
   FROM review_business
@@ -1111,6 +1136,8 @@ const getReviewsCountMonthlyByYear = async function(req, res) {
   } else {
     console.log(data);
     res.json({'reviews_count': data});
+    setCache(cacheKey, {'reviews_count': data});
+    console.log('Cache set:' + cacheKey);
   }
 });
 }
@@ -1118,6 +1145,18 @@ const getReviewsCountMonthlyByYear = async function(req, res) {
 const getOverallAnalysisByBusiness = async function(req, res) {
   const businessId = req.params.business;
   const yearMonth = req.params.ym;
+
+  const cacheKey = 'overallAnalysisByBusiness_' + businessId + '_' + yearMonth;
+  const cachedData = getCache(cacheKey);
+
+  if (cachedData) {
+    console.log('Cache hit:' + cacheKey);
+    res.json(cachedData);
+    return;
+  }
+
+  console.log('Cache miss:' + cacheKey);
+
   console.log(businessId, yearMonth);
 
   const dailyReviews = await getDailyReviewsByBusiness(businessId, yearMonth);
@@ -1126,9 +1165,22 @@ const getOverallAnalysisByBusiness = async function(req, res) {
 
   console.log(dailyReviews, avgStars, userPreferences);
   res.json({'daily_reviews': dailyReviews, 'avg_stars': avgStars[0], 'user_preferences': userPreferences});
+  setCache(cacheKey, {'daily_reviews': dailyReviews, 'avg_stars': avgStars[0], 'user_preferences': userPreferences});
+  console.log('Cache set:' + cacheKey);
 }
 
 const getBusinessList = async function(req, res) {
+  // check cache
+  const cacheKey = 'businessList';
+  const cachedData = getCache(cacheKey);
+  if (cachedData) {
+    console.log('Cache hit:' + cacheKey);
+    res.json(cachedData);
+    return;
+  }
+
+  console.log('Cache miss:' + cacheKey);
+
   const query = `
   SELECT business_id as value, name
   FROM business
@@ -1141,11 +1193,24 @@ const getBusinessList = async function(req, res) {
   } else {
     console.log(data);
     res.json(data);
+    setCache(cacheKey, data);
+    console.log('Cache set:' + cacheKey);
   }
 });
 } 
 
 const getloyalCustomersByBusiness = async function(req, res) {
+  // check cache
+  const cacheKey = 'loyalCustomersByBusiness_' + req.params.business;
+  const cachedData = getCache(cacheKey);
+  if (cachedData) {
+    console.log('Cache hit:' + cacheKey);
+    res.json(cachedData);
+    return;
+  }
+
+  console.log('Cache miss:' + cacheKey);
+
   const query = `
   SELECT
   R.business_id AS id,
@@ -1185,12 +1250,25 @@ const getloyalCustomersByBusiness = async function(req, res) {
   } else {
     console.log(data);
     res.json(data);
+    setCache(cacheKey, data);
+    console.log('Cache set:' + cacheKey);
   }
 });
 }
 
 
 const getReviewTypeCountByBusiness = async function(req, res) {
+  // check cache
+  const cacheKey = 'reviewTypeCountByBusiness_' + req.params.business;
+  const cachedData = getCache(cacheKey);
+  if (cachedData) {
+    console.log('Cache hit:' + cacheKey);
+    res.json(cachedData);
+    return;
+  }
+
+  console.log('Cache miss:' + cacheKey);
+
   const query = `
   SELECT
   (CASE WHEN stars >= 4 THEN 'positive' ELSE 'negative' END) AS reviewType,
@@ -1211,6 +1289,8 @@ const getReviewTypeCountByBusiness = async function(req, res) {
   } else {
     console.log(data);
     res.json(data);
+    setCache(cacheKey, data);
+    console.log('Cache set:' + cacheKey);
   }
 });
 }
@@ -1376,6 +1456,18 @@ const getInfluentialFriends = async function(req, res) {
 // that share a substantial number of mutual customers
 
 const getCompetitiveRanking = async function(req, res) {
+  // check cache
+  const cacheKey = 'competitiveRanking_' + req.query.business_id;
+  const cachedData = getCache(cacheKey);
+
+  if (cachedData) {
+    console.log('Cache hit:' + cacheKey);
+    res.json(cachedData);
+    return;
+  }
+
+  console.log('Cache miss:' + cacheKey);
+
   const { business_id } = req.query;
   console.log("competitiveRanking IN PARAM: ", req.query);
 
@@ -1437,6 +1529,8 @@ const getCompetitiveRanking = async function(req, res) {
     } else {
       console.log(data);
       res.json(data);
+      setCache(cacheKey, data);
+      console.log('Cache set:' + cacheKey);
     }
   });
 }

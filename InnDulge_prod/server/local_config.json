@@ -1,9 +1,9 @@
 {
-    "rds_host": "localhost",
-    "rds_port": "3306",
-    "rds_user": "root",
-    "rds_password": "''''''''",
-    "rds_db": "inndulge",
-    "server_host": "localhost",
-    "server_port": "8080"
-  }
+  "rds_host": "database-1.ci5yxgwypt01.us-east-1.rds.amazonaws.com",
+  "rds_port": "3306",
+  "rds_user": "admin",
+  "rds_password": "Siwaluck80!siwa",
+  "rds_db": "inndulge",
+  "server_host": "localhost",
+  "server_port": "8080"
+}
