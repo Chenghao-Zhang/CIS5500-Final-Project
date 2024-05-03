@@ -19,6 +19,14 @@ connection.connect((err) => err && console.log(err));
 
 const salt = bcrypt.genSaltSync(10);
 
+
+// MongoDB
+const MongoClient = require('mongodb').MongoClient;
+const url = 'mongodb://localhost:27017/';
+const dbName = 'CIS5500-mangodb';
+const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+
+
 // User Control
 const userRegister = async function(req, res) {
   const { username, password, confirmPassword } = req.body;
@@ -263,26 +271,167 @@ const checkFollow = async function(req, res) {
   }
 }
 
-const getFriendsByUserId = async function(userId) {
-  return new Promise((resolve, reject) => {
-    const query = `
-      SELECT u1.user_id AS friend_id, u1.name AS friend_name
-      FROM user u1
-      INNER JOIN follow f1 ON u1.user_id = f1.following_id
-      INNER JOIN follow f2 ON u1.user_id = f2.follower_id
-      WHERE f1.follower_id = ? AND f2.following_id = ?;
-    `;
+// const getFriendsByUserId = async function(userId) {
+//   return new Promise((resolve, reject) => {
+//     const query = `
+//       SELECT u1.user_id AS friend_id, u1.name AS friend_name
+//       FROM user u1
+//       INNER JOIN follow f1 ON u1.user_id = f1.following_id
+//       INNER JOIN follow f2 ON u1.user_id = f2.follower_id
+//       WHERE f1.follower_id = ? AND f2.following_id = ?;
+//     `;
 
-    connection.query(query, [userId, userId], (err, data) => {
-      if (err) {
-        console.error(err);
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    });
+//     connection.query(query, [userId, userId], (err, data) => {
+//       if (err) {
+//         console.error(err);
+//         reject(err);
+//       } else {
+//         resolve(data);
+//       }
+//     });
+//   });
+// };
+
+
+
+
+// const getFriendsByUserId = async function(userId) {
+//   try {
+//     // 连接 MongoDB 数据库
+//     const client = await MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+//     const db = client.db(dbName);
+    
+//     // 查询指定用户的文档
+//     const user = await db.collection('user').findOne({ user_id: userId });
+//     if (user) {
+//       // 获取用户的好友 ID 列表
+//       const friendIds = user.friends;
+      
+//       // 查询好友的信息 用find
+//       const friends = await db.collection('user').find({ user_id: { $in: friendIds } }).toArray();
+      
+//       const result = friends.map(friend => ({
+//         friend_id: friend.user_id,
+//         friend_name: friend.name
+//       }));
+//       console.log('being getFriendsByUserId', result)
+//       return result;
+
+
+//     } else {
+//       return [];
+//     }
+//   } catch (err) {
+//     console.error(err);
+//     throw err;
+//   } finally {
+//     // 关闭数据库连接
+//     await client.close();
+//   }
+// };
+
+const getFriendsByUserId = async function(userId) {
+  const client = await MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+  const db = client.db(dbName);
+
+  // 查询指定用户的文档
+  const user = await db.collection('friends').findOne({ user_id: userId });
+  return new Promise((resolve, reject) => {
+
+
+    if (user) {
+      const friendIds = user.friends;
+      const query = `
+        SELECT user_id, name
+        FROM user
+        WHERE user_id IN (${friendIds.map(id => '?').join(',')})
+      `;
+
+      connection.query(query, friendIds, (err, results) => {
+        if (err) {
+          console.error(err);
+          throw err;
+        } else {
+          const friends = results.map(friend => ({
+            friend_id: friend.user_id,
+            friend_name: friend.name
+          }));
+          resolve(friends);
+          // console.log('being getFriendsByUserId', friends);
+          
+          // return friends;
+        }
+      });
+    } else {
+      return [];
+    }
   });
 };
+
+
+// const getFriendsByUserId = async function(userId) {
+//   try {
+//     // 连接 MongoDB 数据库
+//     const client = await MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+//     const db = client.db(dbName);
+
+//     // 查询指定用户的文档
+//     const user = await db.collection('friends').findOne({ user_id: userId });
+
+//     if (user) {
+//       // 获取用户的好友 ID 列表
+//       const friendIds = user.friends;
+
+//       // 使用 SQL 查询好友的名字
+//       const query = `
+//         SELECT user_id, name
+//         FROM user
+//         WHERE user_id IN (${friendIds.map(id => '?').join(',')})
+//       `;
+
+//       // 执行 SQL 查询
+//       connection.query(query, friendIds, (err, results) => {
+//         if (err) {
+//           console.error(err);
+//           throw err;
+//         } else {
+//           // 提取需要的字段
+//           const friends = results.map(friend => ({
+//             friend_id: friend.user_id,
+//             friend_name: friend.name
+//           }));
+//           // resolve(friends);
+//           // console.log('being getFriendsByUserId', friends);
+          
+//           // return friends;
+//         }
+//       });
+//     } else {
+//       return [];
+//     }
+//   } catch (err) {
+//     console.error(err);
+//     throw err;
+//   } finally {
+//     // 关闭数据库连接
+//     await client.close();
+//   }
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // interest list
 const getFollowingList  = async function(req, res) {
