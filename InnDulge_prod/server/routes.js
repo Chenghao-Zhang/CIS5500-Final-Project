@@ -1826,6 +1826,8 @@ const getTopRatedBusinessesByFriends = async function(req, res) {
     COUNT(DISTINCT rb.review_id) AS NumberOfReviews,
     bd.Location,
     bd.Categories
+    bd.latitude,
+    bd.longitude
   FROM
     user u
   JOIN
