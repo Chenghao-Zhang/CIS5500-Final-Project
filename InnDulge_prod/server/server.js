@@ -31,6 +31,7 @@ app.use(session({
   },
 }));
 
+
 // INNDULGE
 app.post('/user/register', routes.userRegister);
 app.post('/user/login', routes.userLogin);

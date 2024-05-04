@@ -27,6 +27,10 @@ const dbName = 'CIS5500-mangodb';
 const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 // User Control
 const userRegister = async function(req, res) {
   const { username, password, confirmPassword } = req.body;
@@ -286,15 +290,22 @@ const checkFollow = async function(req, res) {
 //         console.error(err);
 //         reject(err);
 //       } else {
+<<<<<<< Updated upstream
+=======
+//         console.log('being getFriendsByUserId', data)
+>>>>>>> Stashed changes
 //         resolve(data);
 //       }
 //     });
 //   });
 // };
 
+<<<<<<< Updated upstream
 
 
 
+=======
+>>>>>>> Stashed changes
 // const getFriendsByUserId = async function(userId) {
 //   try {
 //     // 连接 MongoDB 数据库
@@ -418,6 +429,7 @@ const getFriendsByUserId = async function(userId) {
 //   }
 // };
 
+<<<<<<< Updated upstream
 
 
 
@@ -433,6 +445,8 @@ const getFriendsByUserId = async function(userId) {
 
 
 
+=======
+>>>>>>> Stashed changes
 // interest list
 const getFollowingList  = async function(req, res) {
   const follower_id = req.params.follower_id;
@@ -597,7 +611,7 @@ const getUserBusinessesWithCategories = async function(userId) {
           ...item,
           categories: item.categories ? item.categories.split(', ') : []
         }));
-        console.log(businessesWithCategories);
+        // console.log(businessesWithCategories);
         resolve(businessesWithCategories);
       }
     });
@@ -1212,9 +1226,9 @@ const getUserAndTheirFriendsPreferences = async function(req, res) {
     const userPreferences = await getUserPreference(user_id);
     const friendBusinessesMap = {};
 
-    console.log('getUserAndTheirFriendsPreferences IN PARAM:', user_id)
+    // console.log('getUserAndTheirFriendsPreferences IN PARAM:', user_id)
     console.log('getUserAndTheirFriendsPreferences friendsData:', friendsData)
-    console.log('getUserAndTheirFriendsPreferences userPreferences:', userPreferences)
+    // console.log('getUserAndTheirFriendsPreferences userPreferences:', userPreferences)
 
     for (const friend of friendsData) {
       const friendBusinesses = await getUserBusinessesWithCategories(friend.friend_id);
@@ -1225,7 +1239,7 @@ const getUserAndTheirFriendsPreferences = async function(req, res) {
         // .filter(business => userPreferences.includes(business.categories) || !business.categories.length),
       };
     }
-    console.log('getUserBusinessesWithCategories friendBusinessesMap:', friendBusinessesMap)
+    // console.log('getUserBusinessesWithCategories friendBusinessesMap:', friendBusinessesMap)
     res.json({friendPreference: friendsData.map(friend => {
       const friendInfo = friendBusinessesMap[friend.friend_id];
       return {
