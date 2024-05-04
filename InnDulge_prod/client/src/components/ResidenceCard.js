@@ -136,7 +136,7 @@ export default function ResidenceCard({ residenceId, handleClose }) {
         <Slider {...settings}>
           {residencePics.map((item) => (
             <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px' }}>
-              <img src={item.file_path} alt={item.caption} style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }} />
+              <img src={item.file_path} alt={item.caption} style={{ maxWidth: '100%', maxHeight: '100%', width: '70%', height: '70%' }} />
             </div>
           ))}
         </Slider>)}
