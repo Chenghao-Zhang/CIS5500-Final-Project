@@ -935,7 +935,7 @@ const searchBusiness = async function(req, res) {
     }
 
     if (city !== '') {
-      whereClauses.push(`(b.city = '${city}')`);
+      whereClauses.push(`(l.city = '${city}')`);
     }
 
     console.log(formattedCategories, formattedUserPreference, JSON.parse(only_preference));
@@ -943,9 +943,10 @@ const searchBusiness = async function(req, res) {
     let conditionConnector = whereClauses.length > 1 ? ' AND ' : '';
 
     const query = `
-      SELECT b.*,
+      SELECT b.*, l.address, l.city, l.state, l.latitude, l.longitude,
       ((0.4 * b.stars) + (0.3 * b.review_count)) AS score
       FROM business b
+      JOIN locations l ON b.latitude = l.latitude AND b.longitude = l.longitude
       JOIN category c ON b.business_id = c.business_id
       ${whereClauses.length>0?'WHERE'+whereClauses.join(conditionConnector):''}
       GROUP BY b.business_id
