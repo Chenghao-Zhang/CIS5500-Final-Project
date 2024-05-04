@@ -357,7 +357,7 @@ const getFriendsByUserId = async function(userId) {
             friend_name: friend.name
           }));
           resolve(friends);
-          // console.log('being getFriendsByUserId', friends);
+          console.log('being getFriendsByUserId', friends);
           
           // return friends;
         }
@@ -1336,7 +1336,8 @@ const getPopularBusinessCategory = async function(req, res) {
   FROM review_business r
   JOIN category c ON r.business_id = c.business_id
   GROUP BY c.category
-  ORDER BY value DESC;
+  ORDER BY value DESC
+  LIMIT 10;
   `
 
   connection.query(query, (err, data) => {
@@ -1428,6 +1429,7 @@ const getBusinessList = async function(req, res) {
   const query = `
   SELECT business_id as value, name
   FROM business
+  WHERE business.business_id = 112511
 `;
 
   connection.query(query, (err, data) => {
