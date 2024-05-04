@@ -15,7 +15,7 @@ const UserAvatar = ({ user }) => {
   return (
     <Tooltip title={user.name} placement="bottom-start">
       <Link component="button" onClick={handleOnClick} sx={{ position: 'relative', right: 10, textDecoration: 'none' }}>
-        <Avatar sx={{ bgcolor: deepPurple[500], textDecoration: 'none'}}>
+        <Avatar sx={{ bgcolor: deepPurple[300], textDecoration: 'none', fontWeight: 'bold'}}>
           {user.name[0].toUpperCase()}
         </Avatar>
       </Link>
