@@ -335,7 +335,7 @@ const getFriendsByUserId = async function(userId) {
   const db = client.db(dbName);
 
   // 查询指定用户的文档
-  const user = await db.collection('friends').findOne({ user_id: userId });
+  const user = await db.collection('users').findOne({ user_id: userId });
   return new Promise((resolve, reject) => {
 
 
@@ -357,7 +357,7 @@ const getFriendsByUserId = async function(userId) {
             friend_name: friend.name
           }));
           resolve(friends);
-          console.log('being getFriendsByUserId', friends);
+          // console.log('being getFriendsByUserId', friends);
           
           // return friends;
         }
