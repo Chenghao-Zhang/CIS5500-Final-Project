@@ -897,11 +897,11 @@ const residenceInfo = async function(req, res) {
 
 // Search Business
 const searchBusiness = async function(req, res) {
-  const { name = '', category = '', user_id, only_preference} = req.query;
+  const { name = '', category = '', user_id, only_preference, city = ''} = req.query;
   console.log("searchBusiness IN PARAM: ", req.query);
 
   // check cache
-  const cacheKey = `searchBusiness:${name}:${category}:${user_id}:${only_preference}`;
+  const cacheKey = `searchBusiness:${name}:${category}:${user_id}:${only_preference}:${city}`;
   const cacheData = getCache(cacheKey);
   if (cacheData) {
     console.log('Cache hit:', cacheKey);
@@ -932,6 +932,11 @@ const searchBusiness = async function(req, res) {
     if (formattedUserPreference.length > 0 && JSON.parse(only_preference)) {
       whereClauses.push(`(c.category IN (${formattedUserPreference.join(',')}))`);
     }
+
+    if (city !== '') {
+      whereClauses.push(`(b.city = '${city}')`);
+    }
+
     console.log(formattedCategories, formattedUserPreference, JSON.parse(only_preference));
     // Ensure there's at least one WHERE clause before adding 'AND'
     let conditionConnector = whereClauses.length > 1 ? ' AND ' : '';
