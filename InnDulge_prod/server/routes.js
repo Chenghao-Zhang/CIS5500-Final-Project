@@ -731,21 +731,22 @@ const searchResidence = async function(req, res) {
   ((0.4 * stars) + (0.3 * review_count)) AS score
   FROM airbnb
   WHERE
-    (name LIKE '%${name}%')
+    ((name LIKE '%${name}%')
     OR (property_type LIKE '%${name}%')
     OR airbnb_id IN (
         SELECT airbnb_id
         FROM review_airbnb
         WHERE user_id = '${user_id}'
-    )
+    ))
     AND bedrooms >= ${min_bedrooms}
     AND bedrooms <= ${max_bedrooms}
     AND bathrooms >= ${min_bathrooms}
     AND bathrooms <= ${max_bathrooms}
     AND price BETWEEN ${min_price} AND ${max_price}
-    AND property_type IN (${property.split(',').map(item => `'${item.trim()}'`)})
+    ${property ? `AND property_type IN (${property.split(',').map(item => `'${item.trim()}'`)})` : ''}
   ORDER BY score DESC;
   `;
+  
   //  LIMIT pageSize OFFSET ofst;
   // (0.3 * (1 / (1 + 2 * 6371 *
   //   ASIN(SQRT(POW(SIN((radians(b.latitude) - radians(user_lat)) / 2), 2) +
