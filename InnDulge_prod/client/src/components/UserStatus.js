@@ -147,13 +147,13 @@ export default function UserStatus() {
           <Tooltip title={username}>
           <UserAvatar user={{id:userId, name:username}}/>
           </Tooltip>
-          <Button variant="contained" color='info' onClick={handleLogout}>Logout</Button>
+          <Button variant="contained" sx={{ bgcolor: '#fcf2f8', color: 'black',fontWeight: 'bold' }} onClick={handleLogout}>Logout</Button>
         </Stack>
       ) : (
         <>
             <Stack direction="row" spacing={2}>
-              <Button variant="contained" sx={{ bgcolor: '#fcf2f8', color: 'black' }} onClick={handleOpenLoginModal}>Login</Button>
-              <Button variant="contained" sx={{ bgcolor: '#fcf2f8', color: 'black' }} onClick={handleOpenSignupModal}>Sign Up</Button>
+              <Button variant="contained" sx={{ bgcolor: '#fcf2f8', color: 'black',fontWeight: 'bold' }} onClick={handleOpenLoginModal}>Login</Button>
+              <Button variant="contained" sx={{ bgcolor: '#fcf2f8', color: 'black',fontWeight: 'bold' }} onClick={handleOpenSignupModal}>Sign Up</Button>
             </Stack>
         </>
       )}
