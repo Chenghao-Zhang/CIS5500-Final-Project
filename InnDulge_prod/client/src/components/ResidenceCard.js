@@ -10,6 +10,9 @@ import RevieweForm from './ReviewForm';
 import EntityReviews from './EntityReviews'
 import { loginUser } from '../helpers/cookie';
 
+import Map from './map/src/App';  
+
+
 const config = require('../config.json');
 
 export default function ResidenceCard({ residenceId, handleClose }) {
@@ -67,7 +70,7 @@ export default function ResidenceCard({ residenceId, handleClose }) {
       <Box>Loading...</Box>
     );
   }
-
+  
   return (
     <Modal
       open={true}
@@ -136,8 +139,16 @@ export default function ResidenceCard({ residenceId, handleClose }) {
             </div>
           ))}
         </Slider>)}
+
         <EntityReviews entityId = {residenceId} entityType={'airbnb'}/>
+
+        
+        {/* <Map markers={markers} /> */}
+        <Map recommendedBusinesses={recommendedBusinesses} residenceData={residenceData}/> 
+
+
         <BusinessRecommendation recommendedBusinesses={recommendedBusinesses} />
+
         <Stack
         direction="row"
         justifyContent="flex-end"

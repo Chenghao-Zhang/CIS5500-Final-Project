@@ -786,6 +786,9 @@ const recommendEntertainments = async function(req, res) {
     } else {
       const rlat = data[0].latitude;
       const rlng = data[0].longitude;
+      
+      const scope = 20
+
       // TODO：加入用户偏好 JOIN category c ON b.business_id = c.business_id WHERE (c.category IN userPreference)
       const query = `
       SELECT b.*, l.address, l.city, l.state,
@@ -795,11 +798,22 @@ const recommendEntertainments = async function(req, res) {
                       ASIN(SQRT(POW(SIN((radians(b.latitude) - radians(${rlat})) / 2), 2) +
                                 COS(radians(${rlat})) *
                                 COS(radians(b.latitude)) *
-                                POW(SIN((radians(b.longitude) - radians(${rlng})) / 2), 2)))))) AS score
+                                POW(SIN((radians(b.longitude) - radians(${rlng})) / 2), 2)))))) AS score,
+      2 * 6371 * ASIN(SQRT(POW(SIN((radians(b.latitude) - radians(${rlat})) / 2), 2) +
+                                  COS(radians(${rlat})) *
+                                  COS(radians(b.latitude)) *
+                                  POW(SIN((radians(b.longitude) - radians(${rlng})) / 2), 2))) AS distance
       FROM business b
-      JOIN locations l ON b.latitude = l.latitude AND b.longitude = l.longitude
+      JOIN (SELECT *
+            FROM locations
+            WHERE locations.latitude < ${rlat} + ${scope}
+            AND locations.latitude > ${rlat} - ${scope}
+            AND locations.longitude < ${rlng} + ${scope}
+            AND locations.longitude > ${rlng} - ${scope}) l 
+            ON b.latitude = l.latitude AND b.longitude = l.longitude
       GROUP BY b.business_id, l.address, l.city, l.state
-      ORDER BY score DESC;
+      ORDER BY distance ASC
+      LIMIT 10;
       `;
       connection.query(query, (err, data) => {
         if (err) {
