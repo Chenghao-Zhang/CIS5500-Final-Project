@@ -335,7 +335,7 @@ const getFriendsByUserId = async function(userId) {
   const db = client.db(dbName);
 
   // 查询指定用户的文档
-  const user = await db.collection('friends').findOne({ user_id: userId });
+  const user = await db.collection('users').findOne({ user_id: userId });
   return new Promise((resolve, reject) => {
 
 
@@ -357,7 +357,7 @@ const getFriendsByUserId = async function(userId) {
             friend_name: friend.name
           }));
           resolve(friends);
-          console.log('being getFriendsByUserId', friends);
+          // console.log('being getFriendsByUserId', friends);
           
           // return friends;
         }
@@ -731,21 +731,22 @@ const searchResidence = async function(req, res) {
   ((0.4 * stars) + (0.3 * review_count)) AS score
   FROM airbnb
   WHERE
-    (name LIKE '%${name}%')
+    ((name LIKE '%${name}%')
     OR (property_type LIKE '%${name}%')
     OR airbnb_id IN (
         SELECT airbnb_id
         FROM review_airbnb
         WHERE user_id = '${user_id}'
-    )
+    ))
     AND bedrooms >= ${min_bedrooms}
     AND bedrooms <= ${max_bedrooms}
     AND bathrooms >= ${min_bathrooms}
     AND bathrooms <= ${max_bathrooms}
     AND price BETWEEN ${min_price} AND ${max_price}
-    AND property_type IN (${property.split(',').map(item => `'${item.trim()}'`)})
+    ${property ? `AND property_type IN (${property.split(',').map(item => `'${item.trim()}'`)})` : ''}
   ORDER BY score DESC;
   `;
+  
   //  LIMIT pageSize OFFSET ofst;
   // (0.3 * (1 / (1 + 2 * 6371 *
   //   ASIN(SQRT(POW(SIN((radians(b.latitude) - radians(user_lat)) / 2), 2) +
@@ -897,11 +898,11 @@ const residenceInfo = async function(req, res) {
 
 // Search Business
 const searchBusiness = async function(req, res) {
-  const { name = '', category = '', user_id, only_preference} = req.query;
+  const { name = '', category = '', user_id, only_preference, city = ''} = req.query;
   console.log("searchBusiness IN PARAM: ", req.query);
 
   // check cache
-  const cacheKey = `searchBusiness:${name}:${category}:${user_id}:${only_preference}`;
+  const cacheKey = `searchBusiness:${name}:${category}:${user_id}:${only_preference}:${city}`;
   const cacheData = getCache(cacheKey);
   if (cacheData) {
     console.log('Cache hit:', cacheKey);
@@ -932,14 +933,20 @@ const searchBusiness = async function(req, res) {
     if (formattedUserPreference.length > 0 && JSON.parse(only_preference)) {
       whereClauses.push(`(c.category IN (${formattedUserPreference.join(',')}))`);
     }
+
+    if (city !== '') {
+      whereClauses.push(`(l.city = '${city}')`);
+    }
+
     console.log(formattedCategories, formattedUserPreference, JSON.parse(only_preference));
     // Ensure there's at least one WHERE clause before adding 'AND'
     let conditionConnector = whereClauses.length > 1 ? ' AND ' : '';
 
     const query = `
-      SELECT b.*,
+      SELECT b.*, l.address, l.city, l.state, l.latitude, l.longitude,
       ((0.4 * b.stars) + (0.3 * b.review_count)) AS score
       FROM business b
+      JOIN locations l ON b.latitude = l.latitude AND b.longitude = l.longitude
       JOIN category c ON b.business_id = c.business_id
       ${whereClauses.length>0?'WHERE'+whereClauses.join(conditionConnector):''}
       GROUP BY b.business_id
