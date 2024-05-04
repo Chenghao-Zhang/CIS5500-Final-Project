@@ -67,8 +67,8 @@ export default function BusinessCard({ businessId, handleClose }) {
     <Modal
       open={true}
       onClose={handleClose}
-      style={{ display: 'flex', justifyContent: 'center'
-      , alignItems: 'center', maxHeight: 700 }}
+      style={{ display: 'flex', justifyContent: 'center',
+      alignItems: 'center', maxHeight: 700 }}
     >
       <Box
         p={3}
@@ -76,20 +76,27 @@ export default function BusinessCard({ businessId, handleClose }) {
           background: 'white',
           // borderRadius: '16px',
           border: '3px solid #000',
-          width: 650,
-          height:700,
+          width: '60%',
+          height: '90vh',
           textAlign: 'left',
           overflowWrap: 'break-word',
           overflowY: 'auto',
           overflowX: 'auto',
+          marginTop: '20vh',
         }}
       >
         <Typography variant="h4">{businessData.name}</Typography>
+
+        <br />
+
         <Typography variant="subtitle1">
-          Address: {businessData.address}, {businessData.city}, {businessData.state}
+          <span style={{ fontWeight: 'bold' }}>Address: </span>
+          {businessData.address}, 
+          {businessData.city}, 
+          {businessData.state}
         </Typography>
         <Typography variant="body1">
-          Stars: 
+          <span style={{ fontWeight: 'bold' }}>Stars: </span>
           <Rating
               name="average-stars"
               value={Number(businessData.stars)}
@@ -101,6 +108,9 @@ export default function BusinessCard({ businessId, handleClose }) {
         <Typography variant="body1">
           {businessData.is_open===1?'Open':'Closed'}, {businessData.take_out===1?'Takeout available':'No take-out'}, {businessData.parking===1?'Parking available':'No Parking'}
         </Typography>
+
+        <br />
+
         <Typography variant="body1" gutterBottom>
           {businessData.description}
         </Typography>

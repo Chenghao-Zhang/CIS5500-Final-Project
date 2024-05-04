@@ -43,6 +43,7 @@ function useModal() {
 export default function EntityReviews({ entityId, entityType }) {
   const [reviews, setReviews] = useState([]);
   const [allReviews, setAllReviews] = useState([]);
+  const [reviewCount, setReviewCount] = useState(5);
   const url = entityType === 'business'
     ? `http://${config.server_host}:${config.server_port}/review/business/${entityId}`
     : `http://${config.server_host}:${config.server_port}/review/residence/${entityId}`;
@@ -52,7 +53,8 @@ export default function EntityReviews({ entityId, entityType }) {
     fetch(url)
       .then(res => res.json())
       .then(resJson => {
-        setReviews(resJson.slice(0, 5));
+        setReviewCount(5);
+        setReviews(resJson.slice(0, reviewCount));
         setAllReviews(resJson);
       });
   }, [entityId, url]);
@@ -75,19 +77,18 @@ export default function EntityReviews({ entityId, entityType }) {
     </Dialog>
   );
 
+  const handleReviewMore = () => {
+    const tmp = reviewCount + 5;
+    setReviewCount(tmp);
+    setReviews(allReviews.slice(0, tmp));
+  }
+
   return (
     <Box sx={{ mt: 2, mb: 2 }}>
       <Grid container spacing={2} justifyContent="space-between" alignItems="center">
         <Grid item xs={12} sm={6}>
           <Typography variant="h5">Reviews</Typography>
         </Grid>
-        {allReviews.length > 5 && (
-          <Grid item xs={12} sm={6}>
-            <Button variant="text" onClick={toggleModal}>
-              More ({allReviews.length})
-            </Button>
-          </Grid>
-        )}
       </Grid>
       <Stack direction="column" spacing={2} alignItems="flex-start">
         <Grid container spacing={2}>
@@ -103,6 +104,13 @@ export default function EntityReviews({ entityId, entityType }) {
           </Typography>
         )}
       </Stack>
+        {allReviews.length > reviewCount && (
+          <Grid item xs={12} sm={6}>
+            <Button variant="text" onClick={handleReviewMore}>
+              More ({reviewCount} / {allReviews.length})
+            </Button>
+          </Grid>
+        )}
       <AllCommentsDialog />
     </Box>
   );

@@ -50,9 +50,9 @@ app.get('/business/category', routes.businessCategory); // added cache
 app.get('/search/residence', routes.searchResidence); // added cache
 app.get('/residence/:id', routes.residenceInfo); // added cache
 app.get('/recommend/residence', routes.recommendResidences);
-app.get('/search/business', routes.searchBusiness);
-app.get('/business/:id', routes.businessInfo);
-app.get('/recommend/business', routes.recommendEntertainments);
+app.get('/search/business', routes.searchBusiness); // added cache
+app.get('/business/:id', routes.businessInfo); // added cache
+app.get('/recommend/business', routes.recommendEntertainments); // added cache
 // app.get('/loyal/customers', routes.getLoyalCustomers);
 app.get('/influential/friends', routes.getInfluentialFriends);
 

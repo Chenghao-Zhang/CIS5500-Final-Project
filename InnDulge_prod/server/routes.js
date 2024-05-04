@@ -773,6 +773,17 @@ const recommendEntertainments = async function(req, res) {
   const { id } = req.query;
   console.log("recommendEntertainments IN PARAM: ", req.query);
 
+  //check cache
+  const cacheKey = `recommendEntertainments:${id}`;
+  const cacheData = getCache(cacheKey);
+  if (cacheData) {
+    console.log('Cache hit:', cacheKey);
+    res.json(cacheData);
+    return;
+  }
+
+  console.log('Cache miss:', cacheKey);
+
   const queryResidence = `
   SELECT *
   FROM airbnb
@@ -822,6 +833,7 @@ const recommendEntertainments = async function(req, res) {
         } else {
           console.log(data);
           res.json(data);
+          setCache(cacheKey, data);
         }
       });
     }
@@ -966,6 +978,17 @@ const recommendResidences = async function(req, res) {
   const { id } = req.query;
   console.log("recommendResidences IN PARAM: ", req.query);
 
+  // check cache
+  const cacheKey = `recommendResidences:${id}`;
+  const cacheData = getCache(cacheKey);
+  if (cacheData) {
+    console.log('Cache hit:', cacheKey);
+    res.json(cacheData);
+    return;
+  }
+
+  console.log('Cache miss:', cacheKey);
+
   const queryBusiness = `
   SELECT *
   FROM business
@@ -1000,6 +1023,7 @@ const recommendResidences = async function(req, res) {
         } else {
           console.log(data);
           res.json(data);
+          setCache(cacheKey, data);
         }
       });
     }
@@ -1010,6 +1034,17 @@ const recommendResidences = async function(req, res) {
 const businessInfo = async function(req, res) {
   const id = req.params.id;
   console.log("businessInfo IN PARAM: ", id);
+
+  // check cache
+  const cacheKey = `businessInfo:${id}`;
+  const cacheData = getCache(cacheKey);
+  if (cacheData) {
+    console.log('Cache hit:', cacheKey);
+    res.json(cacheData);
+    return;
+  }
+
+  console.log('Cache miss:', cacheKey);
 
   const query = `
     SELECT
@@ -1048,6 +1083,7 @@ const businessInfo = async function(req, res) {
         const business = results[0][0];
         console.log("Business Details: ", business);
         res.json(business);
+        setCache(cacheKey, business);
       }
     }).catch((err) => {
       console.error(err);
@@ -1187,6 +1223,18 @@ const getAllReviewsByUser = async function(req, res) {
 const getReviewByEntity = async function(req, res) {
   try {
     const table = req.path.includes('business') ? 'review_business' : 'review_airbnb';
+
+    // check cache
+    const cacheKey = `getReviewByEntity:${table}:${req.params.entity_id}`;
+    const cacheData = getCache(cacheKey);
+    if (cacheData) {
+      console.log('Cache hit:', cacheKey);
+      res.json(cacheData);
+      return;
+    }
+
+    console.log('Cache miss:', cacheKey);
+
     const query = `
     SELECT * FROM ${table} WHERE ${table.split('_')[1]}_id = ? ORDER BY date DESC
     `;
@@ -1198,6 +1246,7 @@ const getReviewByEntity = async function(req, res) {
         } else {
           console.log(data);
           res.json(data);
+          setCache(cacheKey, data);
         }
       }
     )} catch (error) {

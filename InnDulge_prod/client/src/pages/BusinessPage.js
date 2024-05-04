@@ -5,6 +5,7 @@ import MenuItem from '@mui/material/MenuItem';
 import InputLabel from '@mui/material/InputLabel';
 import { loginUser } from '../helpers/cookie';
 import BusinessCard from '../components/BusinessCard';
+// import { DataGrid } from '@mui/x-data-grid';
 const config = require('../config.json');
 
 const ITEM_HEIGHT = 48;
@@ -29,6 +30,7 @@ export default function BusinessPage() {
   const [allCategory, setAllCategory] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
+  const [city, setCity] = useState('');
 
   const handleChange = (event) => {
     setOnlyPreference(event.target.checked);
@@ -46,6 +48,7 @@ export default function BusinessPage() {
   const search = () => {
     fetch(`http://${config.server_host}:${config.server_port}/search/business?name=${name}` +
       `&category=${selectedCategory}&user_id=${loginUser().userId}&only_preference=${onlyPreference}`
+      + `&city=${city}`
     )
       .then(res => res.json())
       .then(resJson => {
@@ -109,13 +112,14 @@ export default function BusinessPage() {
     return (
       <Grid container spacing={2} justifyContent="center">
         {slicedData.map((row, index) => (
-          <Grid key={row.id} item xs={10} sm={10} md={10} lg={10}>
+          <Grid key={row.id} item xs={10} sm={10} md={10} lg={10} 
+                onClick={() => setSelectedBusinessId(row.business_id)}>
             <Card alignItems={"center"}
                   style={getCardStyle(index)}
                   onMouseEnter={() => handleMouseEnter(index)}
                   onMouseLeave={handleMouseLeave}
                   >
-              <CardContent onClick={() => setSelectedBusinessId(row.businessId)}>
+              <CardContent>
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <Typography variant="h6" component="div">
@@ -123,7 +127,10 @@ export default function BusinessPage() {
                     </Typography>
                   </Grid>
                     
-                  <Grid item xs={5}>
+                  <Grid item xs={12}>
+                    {/* <Typography variant="body1" color="textSecondary">
+                      Business ID: {row.business_id}
+                    </Typography> */}
                     <Typography variant="body1" color="textSecondary">
                       Stars: {row.stars}
                     </Typography>
@@ -139,10 +146,8 @@ export default function BusinessPage() {
                     <Typography variant="body1" color="textSecondary">
                       Parking: {row.parking ? 'Yes' : 'No'}
                     </Typography>
-                  </Grid>
-                  <Grid item xs={7}>
-                    <Typography variant="body1" color="textSecondary" style={{overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: MAX_LINES, WebkitBoxOrient: 'vertical', top: '16px'}}>
-                      Description: <br /> {row.description}
+                    <Typography variant="body1" color="textSecondary">
+                      Address: {row.address}, {row.city}, {row.state}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -166,10 +171,17 @@ export default function BusinessPage() {
   return (
     <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
       <Container style={{backgroundColor: 'rgba(255, 255, 255, 0.85)', overflow: 'auto'}}>
-        {selectedBusinessId && <BusinessCard businessId={selectedBusinessId} handleClose={() => setSelectedBusinessId(null)} />}
+        {selectedBusinessId && (
+          <BusinessCard 
+            businessId={selectedBusinessId} 
+            handleClose={() => setSelectedBusinessId(null)}
+          />
+        )}
         <h2>Search Business</h2>
-        <Grid container spacing={6} justifyContent={"center"}>
+        {/* <h3>{selectedBusinessId}</h3> */}
+        <Grid container spacing={2} justifyContent={"center"}>
           <Grid item xs={7}>
+            <InputLabel id="Name-label" sx={{mr: 1}}>Name</InputLabel>
             <TextField label='Name' value={name} onChange={(e) => setName(e.target.value)} style={{ width: "100%" }}/>
           </Grid>
           <Grid item xs={5} direction={'row'}>
@@ -178,6 +190,24 @@ export default function BusinessPage() {
                 onChange={handleChange}
                 inputProps={{ 'aria-label': 'preference only checkbox' }}/>
           </Grid>
+          <Grid item xs={7}>
+            <InputLabel id="City-label" sx={{mr: 1}}>City</InputLabel>
+            <TextField label='City' value={city} onChange={(e) => setCity(e.target.value)} style={{ width: "100%" }}/>
+          </Grid>
+          <Grid item xs={5}>
+            <InputLabel id="page-size-label">Page Size</InputLabel>
+            <Select
+              labelId="page-size-label"
+              value={pageSize}
+              onChange={handleChangePageSize}
+              style={{ width: "100%" }}
+            >
+              <MenuItem value={5}>5</MenuItem>
+              <MenuItem value={10}>10</MenuItem>
+              <MenuItem value={25}>25</MenuItem>
+            </Select>
+          </Grid>
+
           <Grid item xs={12} display="flex" alignItems="center">
             <InputLabel id="category-label" sx={{mr: 1}}>Category</InputLabel>
             <Select
@@ -192,20 +222,6 @@ export default function BusinessPage() {
                   {type}
                 </MenuItem>
               ))}
-            </Select>
-          </Grid>
-          <Grid item xs={4}></Grid>
-          <Grid item xs={2}>
-            <InputLabel id="page-size-label">Page Size</InputLabel>
-            <Select
-              labelId="page-size-label"
-              value={pageSize}
-              onChange={handleChangePageSize}
-              style={{ width: "100%" }}
-            >
-              <MenuItem value={5}>5</MenuItem>
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={25}>25</MenuItem>
             </Select>
           </Grid>
         </Grid>

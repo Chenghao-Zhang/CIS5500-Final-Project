@@ -75,7 +75,8 @@ export default function ResidenceCard({ residenceId, handleClose }) {
     <Modal
       open={true}
       onClose={handleClose}
-      style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', maxHeight: 700 }}
+      style={{ display: 'flex', justifyContent: 'center', 
+      alignItems: 'center', maxHeight: 700 }}
     >
       <Box
         p={3}
@@ -140,12 +141,10 @@ export default function ResidenceCard({ residenceId, handleClose }) {
           ))}
         </Slider>)}
 
-        <EntityReviews entityId = {residenceId} entityType={'airbnb'}/>
-
-        
         {/* <Map markers={markers} /> */}
         <Map recommendedBusinesses={recommendedBusinesses} residenceData={residenceData}/> 
-
+        
+        <EntityReviews entityId = {residenceId} entityType={'airbnb'}/>
 
         <BusinessRecommendation recommendedBusinesses={recommendedBusinesses} />
 
