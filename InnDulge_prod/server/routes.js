@@ -335,7 +335,7 @@ const getFriendsByUserId = async function(userId) {
   const db = client.db(dbName);
 
   // 查询指定用户的文档
-  const user = await db.collection('friends').findOne({ user_id: userId });
+  const user = await db.collection('users').findOne({ user_id: userId });
   return new Promise((resolve, reject) => {
 
 
@@ -357,7 +357,7 @@ const getFriendsByUserId = async function(userId) {
             friend_name: friend.name
           }));
           resolve(friends);
-          console.log('being getFriendsByUserId', friends);
+          // console.log('being getFriendsByUserId', friends);
           
           // return friends;
         }
@@ -731,21 +731,22 @@ const searchResidence = async function(req, res) {
   ((0.4 * stars) + (0.3 * review_count)) AS score
   FROM airbnb
   WHERE
-    (name LIKE '%${name}%')
+    ((name LIKE '%${name}%')
     OR (property_type LIKE '%${name}%')
     OR airbnb_id IN (
         SELECT airbnb_id
         FROM review_airbnb
         WHERE user_id = '${user_id}'
-    )
+    ))
     AND bedrooms >= ${min_bedrooms}
     AND bedrooms <= ${max_bedrooms}
     AND bathrooms >= ${min_bathrooms}
     AND bathrooms <= ${max_bathrooms}
     AND price BETWEEN ${min_price} AND ${max_price}
-    AND property_type IN (${property.split(',').map(item => `'${item.trim()}'`)})
+    ${property ? `AND property_type IN (${property.split(',').map(item => `'${item.trim()}'`)})` : ''}
   ORDER BY score DESC;
   `;
+  
   //  LIMIT pageSize OFFSET ofst;
   // (0.3 * (1 / (1 + 2 * 6371 *
   //   ASIN(SQRT(POW(SIN((radians(b.latitude) - radians(user_lat)) / 2), 2) +
