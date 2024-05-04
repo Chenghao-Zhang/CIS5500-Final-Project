@@ -80,10 +80,18 @@ export default function LoginForm ({ isOpen, onClose, onSubmit }) {
                     helperText={formik.touched.password && formik.errors.password}
                     />
                 </Grid>
+                <Grid item xs={12} container justifyContent="center">
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                type="submit"
+                                disabled={!formik.isValid}
+                                sx={{ mt: 2 }}
+                            >
+                                Login
+                            </Button>
                 </Grid>
-                <Button variant="contained" color="primary" type="submit" disabled={!formik.isValid}>
-                Login
-                </Button>
+                </Grid>
             </form>
         </Box>
         </Modal>

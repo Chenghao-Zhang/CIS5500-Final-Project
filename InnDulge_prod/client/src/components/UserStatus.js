@@ -152,8 +152,8 @@ export default function UserStatus() {
       ) : (
         <>
             <Stack direction="row" spacing={2}>
-              <Button variant="contained" color="success" onClick={handleOpenLoginModal}>Login</Button>
-              <Button variant="contained" color="success" onClick={handleOpenSignupModal}>Sign Up</Button>
+              <Button variant="contained" sx={{ bgcolor: '#fcf2f8', color: 'black' }} onClick={handleOpenLoginModal}>Login</Button>
+              <Button variant="contained" sx={{ bgcolor: '#fcf2f8', color: 'black' }} onClick={handleOpenSignupModal}>Sign Up</Button>
             </Stack>
         </>
       )}

@@ -43,14 +43,14 @@ function NavText({ href, text, isMain, subMenu }) {
             aria-haspopup="true"
           >
             <Typography
-              variant='h5'
+              variant='h4'
               noWrap
               sx={{
                 marginRight: '30px',
-                fontFamily: 'monospace',
-                fontWeight: 700,
+                fontFamily: 'cursive',
+                fontWeight: 1000,
                 letterSpacing: '.3rem',
-                color: 'inherit',
+                color: '#f7e1ed',
                 '&:hover': {
                   textDecoration: 'underline',
                 },

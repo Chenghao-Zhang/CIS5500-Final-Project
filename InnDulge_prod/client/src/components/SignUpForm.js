@@ -102,10 +102,18 @@ export default function SignUpForm ({ isOpen, onClose, onSubmit }) {
                 helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
                 />
             </Grid>
-            </Grid>
-            <Button variant="contained" color="primary" type="submit" disabled={!formik.isValid}>
-            Sign Up
-            </Button>
+            <Grid item xs={12} container justifyContent="center">
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        type="submit"
+                        disabled={!formik.isValid}
+                        sx={{ mt: 2 }}
+                    >
+                        Sign Up
+                    </Button>
+                </Grid>
+                </Grid>
         </form>
       </Box>
     </Modal>
