@@ -64,7 +64,7 @@ export default function ResidencePage() {
         setTotalPages(Math.ceil(resJson.length / pageSize));
       });
   }
-
+  const user_id = loginUser().userId;
   // const columns = [
   //   { field: 'name', headerName: 'Name', width: 300, renderCell: (params) => (
   //       <Link onClick={() => setSelectedResidenceId(params.row.airbnb_id)}>{params.value}</Link>
@@ -196,6 +196,7 @@ export default function ResidencePage() {
         {selectedResidenceId && (
           <ResidenceCard
             residenceId={selectedResidenceId}
+            userId = {user_id}
             handleClose={() => setSelectedResidenceId(null)}
           />
         )}

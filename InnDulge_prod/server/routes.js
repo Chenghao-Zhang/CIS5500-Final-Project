@@ -905,7 +905,7 @@ const recommendEntertainments = async function (req, res) {
             AND locations.longitude > ${rlng} - ${scope}) l 
             ON b.latitude = l.latitude AND b.longitude = l.longitude
       GROUP BY b.business_id, l.address, l.city, l.state
-      ORDER BY distance ASC
+      ORDER BY distance ASC, score DESC
       LIMIT 10;
       `;
       connection.query(query, (err, data) => {
@@ -1984,53 +1984,157 @@ const getCompetitiveRanking = async function (req, res) {
 // Identify top-rated businesses (e.g., restaurants, bars) recommended by a user's friends,
 // page: small window showing the business around the Airbnb
 const getTopRatedBusinessesByFriends = async function (req, res) {
-  const { user_id, airbnb_id } = req.query;
+  const { airbnb_id, user_id } = req.query;
   console.log("topRatedBusinessesByFriends IN PARAM: ", req.query);
 
   // user_id: om5ZiponkpRqUNa3pVPiRg $ airbnb_id 344 for demo
-  const query = `
-  SELECT
-    bd.BusinessName,
-    AVG(rb.stars) AS AverageRating,
-    COUNT(DISTINCT rb.review_id) AS NumberOfReviews,
-    bd.Location,
-    bd.Categories
-    bd.latitude,
-    bd.longitude
-  FROM
-    user u
-  JOIN
-    follow f ON u.user_id = f.follower_id
-  JOIN
-    review_business rb ON rb.user_id = f.following_id
-  JOIN
-    cached_business_details bd ON bd.business_id = rb.business_id
-  WHERE
-    u.user_id = ? -- Target user
-    AND EXISTS (
-        SELECT 1
-        FROM airbnb a
-        WHERE ABS(a.latitude - bd.latitude) <= 2 AND ABS(a.longitude - bd.longitude) <= 2
-        AND a.airbnb_id = ? -- Chosen Airbnb
-    )
-  GROUP BY
-    bd.business_id
-  HAVING
-    AVG(rb.stars) >= 4.0 AND COUNT(DISTINCT rb.review_id) >= 5
-  ORDER BY
-    AverageRating DESC, NumberOfReviews DESC
-  LIMIT 10;
-  `;
+//   const query = `
+//   SELECT
+//   bd.BusinessName,
+//   AVG(rb.stars) AS stars,
+//   COUNT(DISTINCT rb.review_id) AS review_count,
+//   bd.Location,
+//   bd.Categories,
+//   bd.latitude,
+//   bd.longitude,
+//   l.address,
+//   l.city,
+//        l.state
+// FROM
+//   user u
+// JOIN
+//   follow f ON u.user_id = f.follower_id
+// JOIN
+//   review_business rb ON rb.user_id = f.following_id
+// JOIN
+//   cached_business_details bd ON bd.business_id = rb.business_id
+// LEFT JOIN
+// locations l ON l.latitude = bd.latitude AND l.longitude = bd.longitude
+// WHERE
+//   u.user_id = ? -- Target user
+//   AND EXISTS (
+//       SELECT 1
+//       FROM airbnb a
+//       WHERE ABS(a.latitude - bd.latitude) <= 2 AND ABS(a.longitude - bd.longitude) <= 2
+//       AND a.airbnb_id = ? -- Chosen Airbnb
+//   )
+// GROUP BY
+//   bd.business_id
+// HAVING
+//   AVG(rb.stars) >= 4.0 AND COUNT(DISTINCT rb.review_id) >= 5
+// ORDER BY
+//   stars DESC, review_count DESC
+// LIMIT 10;
+//   `;
 
-  connection.query(query, [user_id, airbnb_id], (err, data) => {
+const queryResidence = `
+  SELECT *
+  FROM airbnb
+  WHERE airbnb_id = ${airbnb_id}
+  LIMIT 1;
+  `;
+  connection.query(queryResidence, (err, data) => {
     if (err || data.length === 0) {
       console.log(err);
-      res.json({});
+      res.status(500).json({});
     } else {
-      console.log(data);
-      res.json(data);
+      const rlat = data[0].latitude;
+      const rlng = data[0].longitude;
+
+      const scope = 20;
+
+      // TODO：加入用户偏好 JOIN category c ON b.business_id = c.business_id WHERE (c.category IN userPreference)
+      const query = `
+      WITH first_query AS (
+        SELECT bd.businessname              AS name
+             , AVG(rb.stars)                AS stars
+             , COUNT(DISTINCT rb.review_id) AS review_count
+             -- , bd.categories
+             , bd.latitude
+             , bd.longitude
+             , l.address
+             , l.city
+             , l.state
+             , 100                          AS score
+             , 100                          AS distance
+          FROM user u
+                   JOIN follow f ON u.user_id = f.follower_id
+                   JOIN review_business rb ON rb.user_id = f.following_id
+                   JOIN cached_business_details bd ON bd.business_id = rb.business_id
+                   LEFT JOIN locations l ON l.latitude = bd.latitude AND l.longitude = bd.longitude
+         WHERE u.user_id = ${user_id} -- Target user
+           AND EXISTS(
+                 SELECT 1
+                   FROM airbnb a
+                  WHERE ABS(a.latitude - bd.latitude) <= 2
+                    AND ABS(a.longitude - bd.longitude) <= 2
+                    AND a.airbnb_id = ${airbnb_id} -- Chosen Airbnb
+             )
+         GROUP BY bd.business_id
+        HAVING AVG(rb.stars) >= 4.0
+           AND COUNT(DISTINCT rb.review_id) >= 5
+         ORDER BY stars DESC, review_count DESC
+         LIMIT 10
+        )
+      SELECT *
+      FROM first_query
+      
+      UNION ALL
+      SELECT b.name
+      , b.stars
+      , b.review_count
+      -- , b.categories
+      , b.latitude
+      , b.longitude
+      , l.address
+      , l.city
+      , l.state
+      , (0.4 * b.stars) + (0.3 * b.review_count) + (0.3 * (1 / (1 + 2 * 6371 *
+                                                     ASIN(SQRT(POW(SIN((RADIANS(b.latitude) - RADIANS(${rlat})) / 2), 2) +
+                                                               COS(RADIANS(${rlat})) *
+                                                               COS(RADIANS(b.latitude)) *
+                                                               POW(SIN((RADIANS(b.longitude) - RADIANS(${rlng})) / 2), 2)))))) AS score
+      , 2 * 6371 * ASIN(SQRT(POW(SIN((RADIANS(b.latitude) - RADIANS(${rlat})) / 2), 2) +
+              COS(RADIANS(${rlat})) * COS(RADIANS(b.latitude)) *
+              POW(SIN((RADIANS(b.longitude) - RADIANS(${rlng})) / 2), 2)))                                                     AS distance
+      FROM business b
+      JOIN (
+      SELECT *
+      FROM locations
+      WHERE locations.latitude < ${rlat} + ${scope}
+      AND locations.latitude > ${rlat} - ${scope}
+      AND locations.longitude < ${rlng} + ${scope}
+      AND locations.longitude > ${rlng} - ${scope}
+      ) l ON b.latitude = l.latitude AND b.longitude = l.longitude
+      WHERE NOT EXISTS(SELECT * FROM first_query)
+      GROUP BY b.business_id, l.address, l.city, l.state
+      ORDER BY distance ASC, score DESC
+      LIMIT 10;
+      `;
+      connection.query(query, (err, data) => {
+        if (err) {
+          console.log(err);
+          res.status(500).json({});
+        } else {
+          console.log(data);
+          res.json(data);
+          setCache(cacheKey, data);
+        }
+      });
     }
-  });
+  }
+
+
+  // connection.query(query, ['om5ZiponkpRqUNa3pVPiRg', 344], (err, data) => {
+  //   if (err || data.length === 0) {
+  //     console.log(err);
+  //     res.json({});
+  //   } else {
+  //     console.log(data);
+  //     res.json(data);
+  //   }
+  // }
+);
 };
 
 const getUserInfo = (req, res) => {
