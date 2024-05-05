@@ -19,6 +19,8 @@ export default function UserStatus() {
   // User Status
   const [userId, setUserId] = useState(cookie.load('userId')?cookie.load('userId'):'');
   const [username, setUsername] = useState(cookie.load('username')?cookie.load('username'):'');
+  const [business_login, setbusiness_login] = useState(cookie.load('business_login')?cookie.load('business_login'):false);
+
   // Modal Ctrl
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
@@ -65,12 +67,14 @@ export default function UserStatus() {
   const handleLogout = () => {
     setUserId('');
     setUsername('');
+    setbusiness_login(false);
     onLogout();
   };
 
-  const handleCookieLogin = (userId, username) => {
+  const handleCookieLogin = (userId, username, business_login) => {
     setUserId(userId);
     setUsername(username);
+    setbusiness_login(business_login);
   };
 
   async function handleLogin (newUser) {
@@ -81,7 +85,7 @@ export default function UserStatus() {
             headers: {
             'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username: newUser.username, password: newUser.password })
+            body: JSON.stringify({ username: newUser.username, password: newUser.password , business_login: newUser.business_login})
         }
         )
         .then(res => res.json())
@@ -89,7 +93,7 @@ export default function UserStatus() {
             if(resJson.userId&&resJson.username){
                 setUserId(resJson.userId);
                 setUsername(resJson.username);
-                onLogin({userId:resJson.userId, username: resJson.username});
+                onLogin({userId:resJson.userId, username: resJson.username, business_login: resJson.business_login });
                 console.log(resJson);
                 resolve(true);
             }else{
