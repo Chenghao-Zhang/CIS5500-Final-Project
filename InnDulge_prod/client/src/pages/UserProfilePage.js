@@ -16,6 +16,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import UserReviews from '../components/UserReviews';
 import UserAvatar from '../components/UserAvatar'
+import { DataGrid } from '@mui/x-data-grid';
 const config = require('../config.json');
 
 const checkFollow = async (currentUserId, targetUserId) => {
@@ -36,6 +37,7 @@ export default function UserProfilePage() {
   const [followingOpen, setFollowingOpen] = useState(false);
   const [followersList, setFollowersList] = useState([]);
   const [followingList, setFollowingList] = useState([]);
+  const [userPreferenceCategoryList, setUserPreferenceCategoryList] = useState([]);
 
   useEffect(() => {
     setFollowersOpen(false);
@@ -61,12 +63,15 @@ export default function UserProfilePage() {
       if (user_id) {
         const followersResponse = await fetch(`http://${config.server_host}:${config.server_port}/follow/follower/${user_id}`);
         const followingResponse = await fetch(`http://${config.server_host}:${config.server_port}/follow/following/${user_id}`);
+        const userPreferenceCategoryResponse = await fetch(`http://${config.server_host}:${config.server_port}/user/preference/category/${user_id}`);
 
         const followersData = await followersResponse.json();
         const followingData = await followingResponse.json();
+        const userPreferenceCategoryData = await userPreferenceCategoryResponse.json();
 
         setFollowersList(followersData);
         setFollowingList(followingData);
+        setUserPreferenceCategoryList(userPreferenceCategoryData);
       }
     };
 
@@ -133,6 +138,10 @@ export default function UserProfilePage() {
       </Container>
     );
   }
+
+  const columns = [
+    { field: 'category', headerName: 'Category'},
+  ]
 
   return (
     <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
@@ -228,6 +237,11 @@ export default function UserProfilePage() {
               />
             </Typography>
           </Grid>
+          
+          {/* <Grid item xs={12}>
+            <Typography variant="subtitle1" sx={{ fontSize: '1.2rem' }}>Preference Category: {userPreferenceCategoryList}</Typography>
+          </Grid> */}
+
           <Grid item xs={12}>
             <Typography variant="subtitle1" sx={{ fontSize: '1.2rem' }}>Useful Compliment: {user.compliment_useful}</Typography>
           </Grid>
