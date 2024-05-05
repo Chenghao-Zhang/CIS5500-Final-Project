@@ -182,7 +182,7 @@ export default function BusinessPage() {
         <Grid container spacing={2} justifyContent={"center"}>
           <Grid item xs={7}>
             <InputLabel id="Name-label" sx={{mr: 1}}>Name</InputLabel>
-            <TextField label='Name' value={name} onChange={(e) => setName(e.target.value)} style={{ width: "100%" }}/>
+            <TextField value={name} onChange={(e) => setName(e.target.value)} style={{ width: "100%" }}/>
           </Grid>
           <Grid item xs={5} direction={'row'}>
             <InputLabel id="preference-label" sx={{mr: 1}}>Only Preference</InputLabel>
@@ -192,7 +192,7 @@ export default function BusinessPage() {
           </Grid>
           <Grid item xs={7}>
             <InputLabel id="City-label" sx={{mr: 1}}>City</InputLabel>
-            <TextField label='City' value={city} onChange={(e) => setCity(e.target.value)} style={{ width: "100%" }}/>
+            <TextField value={city} onChange={(e) => setCity(e.target.value)} style={{ width: "100%" }}/>
           </Grid>
           <Grid item xs={5}>
             <InputLabel id="page-size-label">Page Size</InputLabel>

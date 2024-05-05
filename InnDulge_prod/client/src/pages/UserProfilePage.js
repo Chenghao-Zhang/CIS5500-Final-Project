@@ -206,19 +206,19 @@ export default function UserProfilePage() {
             </Dialog>
 
             <Grid item xs={12}>
-              <Typography variant="subtitle1">User ID: {user.userId}</Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1">Name: {user.name}</Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1">Reviews: {user.review_count}</Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1">Fans: {user.fans}</Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1">Average Stars: 
+            <Typography variant="subtitle1" sx={{ fontSize: '1.2rem' }}>User ID: {user.userId}</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" sx={{ fontSize: '1.2rem' }}>Name: {user.name}</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" sx={{ fontSize: '1.2rem'}}>Reviews: {user.review_count}</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" sx={{ fontSize: '1.2rem'}}>Fans: {user.fans}</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" sx={{ fontSize: '1.2rem' }}>Average Stars: 
               <Rating
                 name="average-stars"
                 value={user.average_stars}
@@ -226,11 +226,12 @@ export default function UserProfilePage() {
                 size="small"
                 readOnly
               />
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1">Useful Compliment: {user.compliment_useful}</Typography>
-            </Grid>
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" sx={{ fontSize: '1.2rem' }}>Useful Compliment: {user.compliment_useful}</Typography>
+          </Grid>
+
           </Grid>
         </Box>
         <UserReviews userId = {user_id}/>
