@@ -1,16 +1,15 @@
 const express = require('express');
 const session = require('express-session');
-const cors = require('cors');
 const config = require('./config');
 const routes = require('./routes');
+const authMiddle = require('./middle/auth');
 
 const app = express();
-app.use(cors({
-  origin: '*',
-}));
 app.use(function(req, res, next) {
   res.header('Content-Type', 'application/json;charset=UTF-8')
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000')
   res.header('Access-Control-Allow-Credentials', true)
+  res.header('Access-Control-Allow-Methods', 'DELETE,PUT,POST,GET,OPTIONS')
   res.header(
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept'
@@ -34,6 +33,8 @@ app.use(session({
 // INNDULGE
 app.post('/user/register', routes.userRegister);
 app.post('/user/login', routes.userLogin);
+app.post('/user/logout', routes.userLogout);
+app.get('/user/getUserInfo', authMiddle, routes.getUserInfo);
 app.post('/follow', routes.follow);
 app.delete('/follow', routes.unfollow);
 app.get('/follow/check', routes.checkFollow);
@@ -68,12 +69,12 @@ app.get('/competitive/ranking', routes.getCompetitiveRanking); // added cache
 app.get('/top/rated/business/friends', routes.getTopRatedBusinessesByFriends);
 
 // Business Analysis
-app.get('/ba/business/list', routes.getBusinessList); // added cache
+app.get('/ba/business/list', authMiddle, routes.getBusinessList); // added cache
 app.get('/ba/popular/category', routes.getPopularBusinessCategory); // added cache
 app.get('/ba/reviews/count/:year', routes.getReviewsCountMonthlyByYear); // added cache
-app.get('/ba/analysis/:business/:ym', routes.getOverallAnalysisByBusiness); // added cache
-app.get('/ba/loyal_customers/:business', routes.getloyalCustomersByBusiness); // added cache
-app.get('/ba/review_type_count/:business', routes.getReviewTypeCountByBusiness); // added cache
+app.get('/ba/analysis/:ym', authMiddle, routes.getOverallAnalysisByBusiness); // added cache
+app.get('/ba/loyal_customers', authMiddle, routes.getloyalCustomersByBusiness); // added cache
+app.get('/ba/review_type_count', authMiddle, routes.getReviewTypeCountByBusiness); // added cache
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)

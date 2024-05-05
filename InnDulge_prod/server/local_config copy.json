@@ -1,0 +1,9 @@
+{
+  "rds_host": "localhost",
+  "rds_port": "3306",
+  "rds_user": "root",
+  "rds_password": "root",
+  "rds_db": "node_bi_anal",
+  "server_host": "localhost",
+  "server_port": "8080"
+}

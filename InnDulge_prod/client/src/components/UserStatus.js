@@ -64,11 +64,13 @@ export default function UserStatus() {
     setOpenSnackbar(true);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async() => {
     setUserId('');
     setUsername('');
     setbusiness_login(false);
+    await (await fetch(`http://${config.server_host}:${config.server_port}/user/logout`, { method: 'post', credentials: 'include' })).json()
     onLogout();
+    window.history.go()
   };
 
   const handleCookieLogin = (userId, username, business_login) => {
@@ -85,6 +87,7 @@ export default function UserStatus() {
             headers: {
             'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({ username: newUser.username, password: newUser.password , business_login: newUser.business_login})
         }
         )

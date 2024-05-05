@@ -11,3 +11,13 @@ export function getCurrentDateFormatted() {
   var formattedDate = formatMysqlDate(currentDate);
   return formattedDate;
 }
+
+export function getRandomColor() {
+  const randomR = Math.floor(Math.random() * 256);
+  const randomG = Math.floor(Math.random() * 256);
+  const randomB = Math.floor(Math.random() * 256);
+  const colorHex = ((1 << 24) + (randomR << 16) + (randomG << 8) + randomB).toString(16).slice(1);
+
+  return `#${colorHex}`;
+}
+
