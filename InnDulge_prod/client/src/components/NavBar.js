@@ -6,7 +6,7 @@ import UserStatus from './UserStatus';
 import clsx from 'clsx';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
-
+import page_icon from '../img/favicon.png';
 
 function NavText({ href, text, isMain, subMenu }) {
   const theme = useTheme();
@@ -159,6 +159,12 @@ export default function NavBar() {
               { href: '/ba', text: 'Business Analysis' },
             ]}
           />
+          {/* Spacing */}
+          <div style={{ flexGrow: 1 }} />
+          {/* Logo */}
+          <IconButton edge='start' color='inherit' aria-label='menu' href='/'>
+            <img src={page_icon} alt='page icon' style={{ width: '50px', height: '50px' }} />
+          </IconButton>
           <div style={{ flexGrow: 1 }} />
           <UserStatus />
         </Toolbar>
