@@ -1689,6 +1689,7 @@ const getReviewTypeCountByBusiness = async function (req, res) {
   if (cachedData) {
     console.log("Cache hit:" + cacheKey);
     res.json(cachedData);
+    console.log(cachedData);
     return;
   }
 
@@ -1914,8 +1915,9 @@ const getCompetitiveRanking = async function (req, res) {
 
   console.log("Cache miss:" + cacheKey);
 
-  const { business_id } = req.query;
-  console.log("competitiveRanking IN PARAM: ", req.query);
+  const business_id = req.user.business_id;
+  console.log("competitiveRanking IN PARAM: ", business_id);
+  // console.log("competitiveRanking IN PARAM: ", req.query);
 
   // business_id: 7 for demo
   const query = `
@@ -1962,11 +1964,11 @@ const getCompetitiveRanking = async function (req, res) {
         c.category)
     SELECT r.BusinessName, r.Category, r.Ranks
     FROM Ranking r
-    WHERE business_id = 7
+    WHERE business_id = ?
     ORDER BY r.Ranks ASC;
   `;
 
-  connection.query(query, [business_id, business_id], (err, data) => {
+  connection.query(query, [business_id, business_id, business_id], (err, data) => {
     if (err || data.length === 0) {
       console.log(err);
       res.json({});
