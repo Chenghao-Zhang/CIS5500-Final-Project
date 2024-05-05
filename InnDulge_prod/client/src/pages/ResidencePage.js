@@ -137,30 +137,39 @@ export default function ResidencePage() {
                   </Grid>
                   <Grid item xs={5}>
                     <Typography variant="body1" color="textSecondary">
-                      Stars: {row.stars}
+                      <span style={{ fontWeight: 'bold' }}>Stars: </span>
+                      {row.stars}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Review Count: {row.review_count}
+                      <span style={{ fontWeight: 'bold' }}>Review Count: </span>
+                      {row.review_count}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Bathrooms: {row.bathrooms}
+                      <span style={{ fontWeight: 'bold' }}>Bathrooms: </span>
+                      {row.bathrooms}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Bedrooms: {row.bedrooms}
+                      <span style={{ fontWeight: 'bold' }}>Bedrooms: </span>
+                      {row.bedrooms}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Beds: {row.beds}
+                      <span style={{ fontWeight: 'bold' }}>Beds: </span>
+                      {row.beds}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Price: {row.price}
+                      <span style={{ fontWeight: 'bold' }}>Price: </span>
+                      {row.price}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Property Type: {row.property_type}
+                      <span style={{ fontWeight: 'bold' }}>Property Type: </span>
+                      {row.property_type}
                     </Typography>
                   </Grid>
                   <Grid item xs={7}>
                   <Typography variant="body1" color="textSecondary" style={{overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: MAX_LINES, WebkitBoxOrient: 'vertical', top: '16px'}}>
-                    Description: <br /> {row.description}
+                    <span style={{ fontWeight: 'bold' }}>Description: </span>
+                    <br /> 
+                    {row.description}
                   </Typography>
                   </Grid>
                 </Grid>

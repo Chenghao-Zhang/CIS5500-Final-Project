@@ -132,22 +132,28 @@ export default function BusinessPage() {
                       Business ID: {row.business_id}
                     </Typography> */}
                     <Typography variant="body1" color="textSecondary">
-                      Stars: {row.stars}
+                      <span style={{ fontWeight: 'bold' }}>Stars: </span>
+                      {row.stars}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Review Count: {row.review_count}
+                      <span style={{ fontWeight: 'bold' }}>Review Count: </span>
+                      {row.review_count}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Is Open: {row.is_open ? 'Yes' : 'No'}
+                      <span style={{ fontWeight: 'bold' }}>Is Open: </span>
+                      {row.is_open ? 'Yes' : 'No'}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Take Out: {row.take_out ? 'Yes' : 'No'}
+                      <span style={{ fontWeight: 'bold' }}>Take Out: </span>
+                      {row.take_out ? 'Yes' : 'No'}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Parking: {row.parking ? 'Yes' : 'No'}
+                      <span style={{ fontWeight: 'bold' }}>Parking: </span>
+                      {row.parking ? 'Yes' : 'No'}
                     </Typography>
                     <Typography variant="body1" color="textSecondary">
-                      Address: {row.address}, {row.city}, {row.state}
+                      <span style={{ fontWeight: 'bold' }}>Address: </span>
+                      {row.address}, {row.city}, {row.state}
                     </Typography>
                   </Grid>
                 </Grid>
