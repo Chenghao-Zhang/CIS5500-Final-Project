@@ -31,6 +31,7 @@ export default function ResidencePage() {
   const [allProperty, setAllProperty] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
+  const [city, setCity] = useState('');
 
   // Load Airbnb Property types
   useEffect(() => {
@@ -55,7 +56,8 @@ export default function ResidencePage() {
       `&min_bathrooms=${bathrooms[0]}&max_bathrooms=${bathrooms[1]}` +
       `&min_bedrooms=${bedrooms[0]}&max_bedrooms=${bedrooms[1]}` +
       `&min_price=${price[0]}&max_price=${price[1]}` +
-      `&property=${property}&user_id=${loginUser().userId}`
+      `&property=${property}&user_id=${loginUser().userId}` +
+      `&city=${city}`
     )
       .then(res => res.json())
       .then(resJson => {
@@ -229,15 +231,26 @@ export default function ResidencePage() {
                   ))}
                 </Select>
               </Grid>
+              
+              <Grid item>
+                <TextField
+                  label="City"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  style={{ width: "100%"}}
+                />
+              </Grid>
+
               <Grid item xs={12}>
-            <Button
-              variant="contained"
-              onClick={() => search()}
-              style={{ width: "100%" }}
-            >
-              Search
-            </Button>
-          </Grid>
+                <Button
+                  variant="contained"
+                  onClick={() => search()}
+                  style={{ width: "100%" }}
+                >
+                  Search
+                </Button>
+              </Grid>
+
             </Grid>
           </Grid>
           <Grid item xs={12} sm={6}>

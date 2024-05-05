@@ -786,11 +786,12 @@ const searchResidence = async function (req, res) {
     max_price,
     property,
     user_id,
+    city,
   } = req.query;
 
   // check cache
   const cacheKey =
-    `searchResidence:${name}:${min_bathrooms}:${max_bathrooms}:${min_bedrooms}:${max_bedrooms}:${min_price}:${max_price}:${property}:${user_id}`;
+    `searchResidence:${name}:${min_bathrooms}:${max_bathrooms}:${min_bedrooms}:${max_bedrooms}:${min_price}:${max_price}:${property}:${user_id}:${city}`;
   const cacheData = getCache(cacheKey);
   if (cacheData) {
     console.log("Cache hit:", cacheKey);
@@ -825,7 +826,16 @@ const searchResidence = async function (req, res) {
         property.split(",").map((item) => `'${item.trim()}'`)
       })`
       : ""
-  }
+    }
+    ${
+    city
+      ? `AND airbnb_id IN (
+        SELECT airbnb_id
+        FROM locations
+        WHERE city = '${city}'
+    )`
+      : ""
+    }
   ORDER BY score DESC;
   `;
 
