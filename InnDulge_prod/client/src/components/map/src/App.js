@@ -19,7 +19,8 @@ const App = ({recommendedBusinesses, residenceData}) => {
   const markers = recommendedBusinesses.map(business => ({
     geocode: [parseFloat(business.latitude), parseFloat(business.longitude)],
     name: business.name,
-    rating: business.stars
+    rating: business.stars,
+    review_count: business.review_count
   }));
 
   const middle = {latitude: residenceData.latitude, longitude: residenceData.longitude}

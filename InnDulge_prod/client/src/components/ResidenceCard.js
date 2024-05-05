@@ -15,7 +15,7 @@ import Map from './map/src/App';
 
 const config = require('../config.json');
 
-export default function ResidenceCard({ residenceId, handleClose }) {
+export default function ResidenceCard({ residenceId, userId, handleClose }) {
   function formatPrice(price) {
     return `$${Number(price).toFixed(2)}`;
   }
@@ -57,9 +57,12 @@ export default function ResidenceCard({ residenceId, handleClose }) {
           setResidencePics(resJson);
           setResidencePicsLoaded(true);
         }),
-      fetch(`http://${config.server_host}:${config.server_port}/recommend/business?id=${residenceId}`)
+      // fetch(`http://${config.server_host}:${config.server_port}/recommend/business?id=${residenceId}`)
+      fetch(`http://${config.server_host}:${config.server_port}/top/rated/business?airbnb_id=${residenceId}&user_id=${userId}`)
+      // fetch(`http://${config.server_host}:${config.server_port}/recommend/business?id=${residenceId}`)
       .then(res => res.json())
       .then(recommendedJson => {
+        console.log("afsdf", recommendedJson)
         setRecommendedBusinesses(recommendedJson);
         }),
     ]).catch(error => console.error("Failed to fetch data:", error));

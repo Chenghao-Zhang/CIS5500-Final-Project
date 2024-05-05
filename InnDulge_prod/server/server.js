@@ -54,6 +54,8 @@ app.get('/recommend/residence', routes.recommendResidences);
 app.get('/search/business', routes.searchBusiness); // added cache
 app.get('/business/:id', routes.businessInfo); // added cache
 app.get('/recommend/business', routes.recommendEntertainments); // added cache
+app.get('/top/rated/business', routes.getTopRatedBusinessesByFriends);
+
 // app.get('/loyal/customers', routes.getLoyalCustomers);
 app.get('/influential/friends', routes.getInfluentialFriends);
 
@@ -66,7 +68,6 @@ app.get(['/review/business/:entity_id', '/review/residence/:entity_id'], routes.
 app.delete(['/review/business/:review_id', '/review/residence/:review_id'],routes.getReviewByUser);
 app.post('/friend/preference', routes.getUserAndTheirFriendsPreferences);
 app.get('/competitive/ranking', authMiddle, routes.getCompetitiveRanking); // added cache
-app.get('/top/rated/business/friends', routes.getTopRatedBusinessesByFriends);
 
 // Business Analysis
 app.get('/ba/business/list', authMiddle, routes.getBusinessList); // added cache
