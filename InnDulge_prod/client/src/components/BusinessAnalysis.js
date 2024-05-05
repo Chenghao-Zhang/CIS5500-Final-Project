@@ -16,6 +16,7 @@ const BussinessAnalysis = () => {
   const [avgStars, setAvgStars] = useState(0);
   const [loyalCustomers, setLoyalCustomers] = useState([]);
   const [reviewTypeCount, setReviewTypeCount] = useState([]);
+  const [competitiveRanking, setCompetitiveRanking] = useState([]);
 
   const columns = [
     { field: 'id', headerName: 'User ID' },
@@ -25,6 +26,11 @@ const BussinessAnalysis = () => {
     { field: 'latestPositiveReview', headerName: 'Latest Positive Review', width: 200 },
   ];
 
+  const columns_competitive_ranking = [
+    { field: 'BusinessName', headerName: 'Business Name', width: 400 },
+    { field: 'Category', headerName: 'Category', width: 400 },
+    { field: 'Ranks', headerName: 'Rankings', width: 400 },
+  ];
 
   const handleYearMonthChange = (value) => {
     setSelectedYearMonthForBA(format(value, 'yyyy-MM'));
@@ -60,6 +66,18 @@ const BussinessAnalysis = () => {
       });
   }, []);
 
+
+  useEffect(() => {
+      
+    fetch(`http://${config.server_host}:${config.server_port}/competitive/ranking`, {
+      credentials: 'include'
+    })
+      .then(res => res.json())
+      .then(resJson => {
+        console.log("sdfs", resJson);
+        setCompetitiveRanking(resJson);
+      });
+  }, []);
 
   const RADIAN = Math.PI / 180;
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
@@ -184,6 +202,21 @@ const BussinessAnalysis = () => {
           </Box>
         </div>
       </Grid>
+
+      <Grid item xs={6} md={12} display="flex" alignItems="center" justifyContent="center">
+        <Box>
+          <h3 style={{ width: '1000px', textAlign: 'center', marginBottom: '1em' }}>Competitive Ranking</h3>
+          <DataGrid
+            width={1000}
+            rows={competitiveRanking || []}
+            columns={columns_competitive_ranking}
+            pageSize={10}
+            autoHeight
+            getRowId={(row) => `${row.BusinessName}-${row.Category}`}
+          />
+        </Box>
+      </Grid>
+
     </>
   )
 }

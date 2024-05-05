@@ -69,7 +69,7 @@ export default function AnalyticsDashboardPage() {
                   value={selectedYearForReviews}
                   onChange={(e) => setSelectedYearForReviews(parseInt(e.target.value))}
                 >
-                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((year) => (
                     <MenuItem key={year} value={year}>{year}</MenuItem>
                   ))}
                 </Select>

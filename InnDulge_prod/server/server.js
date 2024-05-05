@@ -65,7 +65,7 @@ app.get('/review/user/:user_id', routes.getAllReviewsByUser);
 app.get(['/review/business/:entity_id', '/review/residence/:entity_id'], routes.getReviewByEntity);
 app.delete(['/review/business/:review_id', '/review/residence/:review_id'],routes.getReviewByUser);
 app.post('/friend/preference', routes.getUserAndTheirFriendsPreferences);
-app.get('/competitive/ranking', routes.getCompetitiveRanking); // added cache
+app.get('/competitive/ranking', authMiddle, routes.getCompetitiveRanking); // added cache
 app.get('/top/rated/business/friends', routes.getTopRatedBusinessesByFriends);
 
 // Business Analysis
