@@ -41,8 +41,9 @@ const Map = ({markers, middle}) => {
         {markers.map((marker, index) => (
           <Marker key={index} position={marker.geocode} icon={customIcon}>
             <Popup>
-              <div style={{ fontSize: "16px", fontWeight: "bold" }}>{marker.name}</div>
-              <div style={{ fontSize: "14px" }}>Rating: {marker.rating}</div>
+              <div className="custom-popup" style={{ fontSize: "16px", fontWeight: "bold" }}>{marker.name}</div>
+              <div className="custom-popup" style={{ fontSize: "14px" }}>Rating: {marker.rating}</div>
+              <div className="custom-popup" style={{ fontSize: "14px" }}>Review Count: {marker.review_count}</div>
             </Popup>
           </Marker>
         ))}
