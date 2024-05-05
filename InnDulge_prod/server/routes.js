@@ -1727,8 +1727,8 @@ const getReviewTypeCountByBusiness = async function (req, res) {
 // Query user's prefered entertainment category
 // page: user profile
 const getUserPreferenceCategory = async function (req, res) {
-  const { user_id } = req.query;
-  console.log("userPreferenceCategory IN PARAM: ", req.query);
+  const user_id = req.params.user_id;
+  console.log("userPreferenceCategory with id: ", req.params.user_id);
 
   // user_id: bYENop4BuQepBjM1-BI3fA for demo
   const query = `
@@ -1783,7 +1783,7 @@ const getUserPreferenceCategory = async function (req, res) {
     AND AVG(ui.stars) >= 3
   ORDER BY
     category_count DESC, average_rating DESC
-  LIMIT 5;
+  LIMIT 6;
   `;
 
   connection.query(query, [user_id, user_id], (err, data) => {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import background from '../img/bkg.png';
 import { useParams } from 'react-router-dom';
 import { deepPurple } from '@mui/material/colors';
-import { Container, Typography, Divider, Grid, Avatar, IconButton, Button, Rating } from '@mui/material';
+import { Container, Typography, Divider, Grid, Avatar, IconButton, Button, Rating, Card, CardContent} from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { Box } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,8 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import UserReviews from '../components/UserReviews';
 import UserAvatar from '../components/UserAvatar'
-import { DataGrid } from '@mui/x-data-grid';
+import { Link } from 'react-router-dom';
+
 const config = require('../config.json');
 
 const checkFollow = async (currentUserId, targetUserId) => {
@@ -139,9 +140,86 @@ export default function UserProfilePage() {
     );
   }
 
-  const columns = [
-    { field: 'category', headerName: 'Category'},
-  ]
+  const CustomCategoryCardRow = ({ data, field }) => {
+    if (data.length === 0 || data === null) {
+      return (
+        <Grid container justifyContent="center">
+          <Grid item xs={12} style={{ padding: "16px" }}>
+            <Card style={{ width: "100%", height: "100%" }}>
+              <CardContent style={{ textAlign: "center", height: "100%", alignItems: "center" }}>
+                <Typography variant="h6" textAlign={'center'}>No Results</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      );
+    }
+
+    try {
+      const ret = (
+        <Grid container spacing={2} justifyContent="left">
+          {data.map((row, index) => (
+            <Grid key={row.id} item xs={4}>
+              <Card alignItems={"center"}>
+                <CardContent>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Typography variant="h6" component="div">
+                        <Link>{row.category}</Link>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      {/* <Typography variant="body1" color="textSecondary">
+                        Business ID: {row.business_id}
+                      </Typography> */}
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Category Count: </span>
+                        {row.category_count}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Average Rating: </span>
+                        {row.average_rating}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Min Rating: </span>
+                        {row.min_rating}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Max Rating: </span>
+                        {row.max_rating}
+                      </Typography>
+                      {/* <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Highest Rated Business: </span>
+                        {row.highest_rated_business}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Lowest Rated Business: </span>
+                        {row.lowest_rated_business}
+                      </Typography> */}
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      );
+      return ret;
+    } catch (error) {
+      console.error('Error rendering CustomCategoryCardRow:', error);
+      return (
+        <Grid container justifyContent="center">
+          <Grid item xs={12} style={{ padding: "16px" }}>
+            <Card style={{ width: "100%", height: "100%" }}>
+              <CardContent style={{ textAlign: "center", height: "100%", alignItems: "center" }}>
+                <Typography variant="h6" textAlign={'center'}>No Results</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      );
+    }
+  };
 
   return (
     <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
@@ -241,6 +319,13 @@ export default function UserProfilePage() {
           {/* <Grid item xs={12}>
             <Typography variant="subtitle1" sx={{ fontSize: '1.2rem' }}>Preference Category: {userPreferenceCategoryList}</Typography>
           </Grid> */}
+
+          {/* <DataGrid rows={userPreferenceCategoryList} columns={columns} pageSize={5} /> */}
+          <Grid item xs={12}>
+            <Typography variant="h6">Preference Category</Typography>
+            <br />
+            <CustomCategoryCardRow data={userPreferenceCategoryList} field="category"/>
+          </Grid>
 
           <Grid item xs={12}>
             <Typography variant="subtitle1" sx={{ fontSize: '1.2rem' }}>Useful Compliment: {user.compliment_useful}</Typography>
