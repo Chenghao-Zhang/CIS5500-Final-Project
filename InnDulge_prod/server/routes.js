@@ -69,34 +69,53 @@ const userRegister = async function(req, res) {
 }
 
 const userLogin = async function(req, res) {
-  const { username, password } = req.body;
+  const { username, password, business_login } = req.body;
 
   try {
-    connection.query('SELECT * FROM user WHERE name = ? LIMIT 1', [username], async (err, row) => {
-      if (err) {
-        console.error('Error checking existing user:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else if (row.length === 0) {
-        console.error('User not found:', username);
-        res.status(200).json({ message: 'User not found' });
-      } else if (row.length > 0) {
-        try {
-          row = row[0];
-          const userId = row.user_id;
-          const userPwd = row.password;
-          // compare passwords
-          if (await bcrypt.compare(password, userPwd)) {
-            console.log(row);
-            res.status(200).json({ message: 'Login successful', userId: userId, username: row.name });
-          } else {
-            res.status(501).json({ error: 'Invalid credentials' });
-          }
-        } catch (error) {
-          console.error('Error logining user:', error);
+    if (business_login) {
+      const businessId = username
+      connection.query('SELECT * FROM business WHERE business_id = ? LIMIT 1', [businessId], async (err, row) => {
+        if (err) {
+          console.error('Error checking existing business:', err);
           res.status(500).json({ error: 'Internal server error' });
+        } else if (row.length === 0) {
+          console.error('User not found:', businessId);
+          res.status(200).json({ message: 'User not found' });
+        } else if (row.length > 0) {
+
+          row = row[0];
+          console.log(businessId, row.name);
+          res.status(200).json({ message: 'Login successful', userId: businessId, username: row.name });
         }
-      }
-    });
+      });
+    }
+    else{
+      connection.query('SELECT * FROM user WHERE name = ? LIMIT 1', [username], async (err, row) => {
+        if (err) {
+          console.error('Error checking existing user:', err);
+          res.status(500).json({ error: 'Internal server error' });
+        } else if (row.length === 0) {
+          console.error('User not found:', username);
+          res.status(200).json({ message: 'User not found' });
+        } else if (row.length > 0) {
+          try {
+            row = row[0];
+            const userId = row.user_id;
+            const userPwd = row.password;
+            // compare passwords
+            if (await bcrypt.compare(password, userPwd)) {
+              console.log(row);
+              res.status(200).json({ message: 'Login successful', userId: userId, username: row.name });
+            } else {
+              res.status(501).json({ error: 'Invalid credentials' });
+            }
+          } catch (error) {
+            console.error('Error logining user:', error);
+            res.status(500).json({ error: 'Internal server error' });
+          }
+        }
+      });
+    }
   } catch (error) {
     console.error('Error checking existing user:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -898,11 +917,11 @@ const residenceInfo = async function(req, res) {
 
 // Search Business
 const searchBusiness = async function(req, res) {
-  const { name = '', category = '', user_id, only_preference, city = ''} = req.query;
+  const { name = '', category = '', user_id, only_preference} = req.query;
   console.log("searchBusiness IN PARAM: ", req.query);
 
   // check cache
-  const cacheKey = `searchBusiness:${name}:${category}:${user_id}:${only_preference}:${city}`;
+  const cacheKey = `searchBusiness:${name}:${category}:${user_id}:${only_preference}`;
   const cacheData = getCache(cacheKey);
   if (cacheData) {
     console.log('Cache hit:', cacheKey);
@@ -933,20 +952,14 @@ const searchBusiness = async function(req, res) {
     if (formattedUserPreference.length > 0 && JSON.parse(only_preference)) {
       whereClauses.push(`(c.category IN (${formattedUserPreference.join(',')}))`);
     }
-
-    if (city !== '') {
-      whereClauses.push(`(l.city = '${city}')`);
-    }
-
     console.log(formattedCategories, formattedUserPreference, JSON.parse(only_preference));
     // Ensure there's at least one WHERE clause before adding 'AND'
     let conditionConnector = whereClauses.length > 1 ? ' AND ' : '';
 
     const query = `
-      SELECT b.*, l.address, l.city, l.state, l.latitude, l.longitude,
+      SELECT b.*,
       ((0.4 * b.stars) + (0.3 * b.review_count)) AS score
       FROM business b
-      JOIN locations l ON b.latitude = l.latitude AND b.longitude = l.longitude
       JOIN category c ON b.business_id = c.business_id
       ${whereClauses.length>0?'WHERE'+whereClauses.join(conditionConnector):''}
       GROUP BY b.business_id
