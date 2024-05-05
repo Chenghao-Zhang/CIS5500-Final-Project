@@ -35,3 +35,25 @@
   font-size: 1.2rem;
   box-shadow: 0 0 0px 5px #fff;
 }
+
+.map-page .leaflet-popup {
+  background: #fff; /* White background for clarity */
+  border-radius: 8px; /* Rounded corners for a softer look */
+  border: 1px solid #ccc; /* Subtle border */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  font-family: Arial, sans-serif; /* Consistent, readable font */
+}
+
+.map-page .leaflet-popup-content {
+  padding: 10px; /* Adequate padding around the content */
+  font-size: 14px; /* Appropriate font size */
+  line-height: 1.4; /* Improve readability with line spacing */
+}
+
+.map-page .leaflet-popup-content-wrapper {
+  padding: 0; /* Remove any default padding */
+}
+
+.map-page .leaflet-popup-tip-container {
+  display: none; /* This will hide the tip */
+}
