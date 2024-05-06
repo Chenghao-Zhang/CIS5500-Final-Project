@@ -2072,7 +2072,7 @@ const queryResidence = `
                    JOIN review_business rb ON rb.user_id = f.following_id
                    JOIN cached_business_details bd ON bd.business_id = rb.business_id
                    LEFT JOIN locations l ON l.latitude = bd.latitude AND l.longitude = bd.longitude
-         WHERE u.user_id = ${user_id} -- Target user
+         WHERE u.user_id = ? -- Target user
            AND EXISTS(
                  SELECT 1
                    FROM airbnb a
@@ -2121,14 +2121,14 @@ const queryResidence = `
       ORDER BY distance ASC, score DESC
       LIMIT 10;
       `;
-      connection.query(query, (err, data) => {
+      connection.query(query, [user_id],(err, data) => {
         if (err) {
           console.log(err);
           res.status(500).json({});
         } else {
           console.log(data);
           res.json(data);
-          setCache(cacheKey, data);
+          // setCache(cacheKey, data);
         }
       });
     }
