@@ -39,6 +39,7 @@ export default function UserProfilePage() {
   const [followersList, setFollowersList] = useState([]);
   const [followingList, setFollowingList] = useState([]);
   const [userPreferenceCategoryList, setUserPreferenceCategoryList] = useState([]);
+  const [influentialFriends, setInfluentialFriends] = useState([]);
 
   useEffect(() => {
     setFollowersOpen(false);
@@ -66,13 +67,17 @@ export default function UserProfilePage() {
         const followingResponse = await fetch(`http://${config.server_host}:${config.server_port}/follow/following/${user_id}`);
         const userPreferenceCategoryResponse = await fetch(`http://${config.server_host}:${config.server_port}/user/preference/category/${user_id}`);
 
+        const influentialFriendsRes = await fetch(`http://${config.server_host}:${config.server_port}/influential/friends?user_id=${user_id}`)
+
         const followersData = await followersResponse.json();
         const followingData = await followingResponse.json();
         const userPreferenceCategoryData = await userPreferenceCategoryResponse.json();
+        const influentialFriends = await influentialFriendsRes.json()
 
         setFollowersList(followersData);
         setFollowingList(followingData);
         setUserPreferenceCategoryList(userPreferenceCategoryData);
+        setInfluentialFriends(influentialFriends)
       }
     };
 
@@ -221,6 +226,73 @@ export default function UserProfilePage() {
     }
   };
 
+
+  const InfluentialFriendsList = ({ data, field }) => {
+    if (data.length === 0 || data === null) {
+      return (
+        <Grid container justifyContent="center">
+          <Grid item xs={12} style={{ padding: "16px" }}>
+            <Card style={{ width: "100%", height: "100%" }}>
+              <CardContent style={{ textAlign: "center", height: "100%", alignItems: "center" }}>
+                <Typography variant="h6" textAlign={'center'}>No Results</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      );
+    }
+
+    try {
+      const ret = (
+        <Grid container spacing={2} justifyContent="left">
+          {data.map((row, index) => (
+            <Grid key={row.id} item xs={4}>
+              <Card alignItems={"center"}>
+                <CardContent>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Typography variant="h6" component="div">
+                        <Link>{row.category}</Link>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>FriendName: </span>
+                        {row.FriendName}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>TotalReviews: </span>
+                        {row.TotalReviews}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>AvgRating: </span>
+                        {row.AvgRating}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      );
+      return ret;
+    } catch (error) {
+      console.error('Error rendering CustomCategoryCardRow:', error);
+      return (
+        <Grid container justifyContent="center">
+          <Grid item xs={12} style={{ padding: "16px" }}>
+            <Card style={{ width: "100%", height: "100%" }}>
+              <CardContent style={{ textAlign: "center", height: "100%", alignItems: "center" }}>
+                <Typography variant="h6" textAlign={'center'}>No Results</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      );
+    }
+  };
+
   return (
     <div style={{ backgroundImage: `url(${background})`, height: '100vh', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center', overflow: 'auto' }}>
       <Container maxWidth="lg" style={{backgroundColor: 'rgba(255, 255, 255, 0.85)'}}>
@@ -325,6 +397,12 @@ export default function UserProfilePage() {
             <Typography variant="h6">Preference Category</Typography>
             <br />
             <CustomCategoryCardRow data={userPreferenceCategoryList} field="category"/>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Typography variant="h6">Influential Friends</Typography>
+            <br />
+            <InfluentialFriendsList data={influentialFriends} field="category"/>
           </Grid>
 
           <Grid item xs={12}>

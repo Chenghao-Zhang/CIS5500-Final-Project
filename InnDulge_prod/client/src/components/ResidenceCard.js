@@ -135,14 +135,16 @@ export default function ResidenceCard({ residenceId, userId, handleClose }) {
         <Typography variant="body1" gutterBottom>
           {residenceData.description}
         </Typography>
+        
         {residencePics && residencePics.length > 0 && (
-        <Slider {...settings}>
+          <div>
           {residencePics.map((item) => (
-            <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px' }}>
+            <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <img src={item.file_path} alt={item.caption} style={{ maxWidth: '100%', maxHeight: '100%', width: '70%', height: '70%' }} />
             </div>
           ))}
-        </Slider>)}
+          </div>
+        )}
 
         {/* <Map markers={markers} /> */}
         <Map recommendedBusinesses={recommendedBusinesses} residenceData={residenceData}/> 

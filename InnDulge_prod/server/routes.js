@@ -989,7 +989,7 @@ const residenceInfo = async function (req, res) {
 
 // Search Business
 const searchBusiness = async function (req, res) {
-  const { name = "", category = "", user_id, only_preference } = req.query;
+  const { name = "", category = "", user_id, only_preference, city } = req.query;
   console.log("searchBusiness IN PARAM: ", req.query);
 
   // check cache
@@ -1040,16 +1040,16 @@ const searchBusiness = async function (req, res) {
     let conditionConnector = whereClauses.length > 1 ? " AND " : "";
 
     const query = `
-      SELECT b.*,
+      SELECT b.*, l.address, l.city, l.state,
       ((0.4 * b.stars) + (0.3 * b.review_count)) AS score
       FROM business b
       JOIN category c ON b.business_id = c.business_id
+      JOIN locations l ON b.latitude = l.latitude AND b.longitude = l.longitude
       ${
-      whereClauses.length > 0
-        ? "WHERE" + whereClauses.join(conditionConnector)
-        : ""
-    }
-      GROUP BY b.business_id
+        whereClauses.length > 0
+          ? "WHERE" + whereClauses.join(conditionConnector)
+          : ""
+      }
       ORDER BY score DESC;
     `;
 
@@ -1067,9 +1067,16 @@ const searchBusiness = async function (req, res) {
       } else if (data.length === 0) {
         res.json([]);
       } else {
-        console.log(data);
-        res.json(data);
-        setCache(cacheKey, data);
+        let _data = data
+          console.log('city :>> ', city);
+
+        // if (city) {
+        //   console.log('city :>> ', city);
+        //   _data = data.filter(b => b.city.includes(city))
+        // }
+        console.log(_data.length, _data[0]);
+        res.json(_data);
+        setCache(cacheKey, _data);
         console.log("Cache set:", cacheKey);
       }
     });
@@ -1120,7 +1127,6 @@ const recommendResidences = async function (req, res) {
                   POW(SIN((radians(b.longitude) - radians(${blng})) / 2), 2)))))) AS score
         FROM airbnb b
         JOIN locations l ON b.latitude = l.latitude AND b.longitude = l.longitude
-        GROUP BY b.airbnb_id, l.address, l.city, l.state
         ORDER BY score DESC;
         `;
       connection.query(query, (err, data) => {
@@ -1858,7 +1864,8 @@ const getUserPreferenceCategory = async function (req, res) {
 // Shows friends' influence based on reviews of shared businesses
 // page: user profile
 const getInfluentialFriends = async function (req, res) {
-  const { user_id } = req.query;
+  // const { user_id } = req.query;
+  const user_id = 'Oi1qbcz2m2SnwUeztGYcnQ'
   console.log("influentialFriends IN PARAM: ", req.query);
 
   // user_id: Oi1qbcz2m2SnwUeztGYcnQ for demo
