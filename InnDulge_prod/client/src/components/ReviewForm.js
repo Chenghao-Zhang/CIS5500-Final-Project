@@ -16,7 +16,7 @@ const style = {
     p: 4,
   };
 
-export default function RevieweForm({ isOpen, onClose, user_id, entityId, entityType }) {
+export default function RevieweForm({ isOpen, onClose, user_id, entityId, entityType, refresh }) {
   const [formData] = useState({
     stars: 0,
     text: '',
@@ -38,6 +38,7 @@ export default function RevieweForm({ isOpen, onClose, user_id, entityId, entity
       } else if (entityType === 'business') {
         await apiCall('POST', 'review/business/add', values);
       }
+      refresh && refresh()
       resetForm({ values: initialValues });
       onClose();
     },

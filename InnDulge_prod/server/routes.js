@@ -1380,7 +1380,6 @@ const deleteReview = async function (req, res) {
 };
 
 const getAllReviewsByUser = async function (req, res) {
-  console.log('getAllReviewsByUser :>> ');
   try {
     const tables = ["review_business", "review_airbnb"];
     let allPromises = [];
@@ -1420,7 +1419,7 @@ const getReviewByEntity = async function (req, res) {
 
     // check cache
     const cacheKey = `getReviewByEntity:${table}:${req.params.entity_id}`;
-    const cacheData = getCache(cacheKey);
+    const cacheData = null // getCache(cacheKey);
     if (cacheData) {
       console.log("Cache hit:", cacheKey);
       res.json(cacheData);
@@ -1434,6 +1433,8 @@ const getReviewByEntity = async function (req, res) {
       table.split("_")[1]
     }_id = ? ORDER BY date DESC
     `;
+
+    console.log('query :>> ', query);
     connection.query(query, [req.params.entity_id], (err, data) => {
       if (err) {
         console.error(err);

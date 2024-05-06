@@ -68,7 +68,6 @@ export default function ResidencePage() {
         const residenceWithId = resJson.map((residence) => ({ id: residence.airbnb_id, ...residence }));
         setData(residenceWithId);
         setTotalPages(Math.ceil(total_count / pageSize));
-        setResidenceData([])
         setResidenceData(residenceWithId)
       });
   }
@@ -133,7 +132,7 @@ export default function ResidencePage() {
             <Map recommendedBusinesses={residenceData} residenceData={residenceData[0]}/> 
           </div>
         <Grid style={{ marginTop: '10px'}} container spacing={2} justifyContent="center">
-          {slicedData.map((row, index) => (
+          {data.map((row, index) => (
             <Grid key={row.id} item xs={10} sm={10} md={10} lg={10}>
               <Card alignItems={"center"}
                     style={getCardStyle(index)}
