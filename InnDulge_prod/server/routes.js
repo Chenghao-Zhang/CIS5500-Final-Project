@@ -787,11 +787,13 @@ const searchResidence = async function (req, res) {
     property,
     user_id,
     city,
+    pageSize,
+    page,
   } = req.query;
 
   // check cache
   const cacheKey =
-    `searchResidence:${name}:${min_bathrooms}:${max_bathrooms}:${min_bedrooms}:${max_bedrooms}:${min_price}:${max_price}:${property}:${user_id}:${city}`;
+    `searchResidence:${name}:${min_bathrooms}:${max_bathrooms}:${min_bedrooms}:${max_bedrooms}:${min_price}:${max_price}:${property}:${user_id}:${city}:${pageSize}:${page}`;
   const cacheData = getCache(cacheKey);
   if (cacheData) {
     console.log("Cache hit:", cacheKey);
@@ -802,7 +804,46 @@ const searchResidence = async function (req, res) {
   console.log("Cache miss:", cacheKey);
 
   console.log("searchResidence IN PARAM: ", req.query);
+
+  let total_count = 0
   // TODO: add user info、pagesize、offset
+  const count_query = ` select count(*) as count 
+  FROM airbnb
+  WHERE
+    ((name LIKE '%${name}%')
+    OR (property_type LIKE '%${name}%')
+    OR airbnb_id IN (
+        SELECT airbnb_id
+        FROM review_airbnb
+        WHERE user_id = '${user_id}'
+    ))
+    AND bedrooms >= ${min_bedrooms}
+    AND bedrooms <= ${max_bedrooms}
+    AND bathrooms >= ${min_bathrooms}
+    AND bathrooms <= ${max_bathrooms}
+    AND price BETWEEN ${min_price} AND ${max_price}
+    ${
+    property
+      ? `AND property_type IN (${
+        property.split(",").map((item) => `'${item.trim()}'`)
+      })`
+      : ""
+    }
+    ${
+    city
+      ? `AND airbnb_id IN (
+        SELECT airbnb_id
+        FROM locations
+        WHERE city = '${city}'
+    )`
+      : ""
+    }`
+connection.query(count_query, (err, results) => {
+    if (err) throw err;
+    console.log(count_query, results);
+    total_count = results[0].count;
+  })
+
   const query = `
   SELECT *,
   ((0.4 * stars) + (0.3 * review_count)) AS score
@@ -836,7 +877,9 @@ const searchResidence = async function (req, res) {
     )`
       : ""
     }
-  ORDER BY score DESC;
+  ORDER BY score DESC
+  ${ pageSize ? `LIMIT ${pageSize}` : "" }
+  ${ page ? `OFFSET ${page * pageSize}` : "" }
   `;
 
   //  LIMIT pageSize OFFSET ofst;
@@ -851,9 +894,16 @@ const searchResidence = async function (req, res) {
       console.log(err);
       res.status(500).json({});
     } else {
-      console.log(data);
-      res.json(data);
-      setCache(cacheKey, data);
+      console.log(data.length, data[0]);
+      console.log('city :>> ', city);
+      res.json({
+        total_count,
+        data
+      });
+      setCache(cacheKey, {
+        total_count,
+        data
+      });
       console.log("Cache set:", cacheKey);
     }
   });
@@ -994,7 +1044,7 @@ const searchBusiness = async function (req, res) {
 
   // check cache
   const cacheKey =
-    `searchBusiness:${name}:${category}:${user_id}:${only_preference}`;
+    `searchBusiness:${name}:${category}:${user_id}:${only_preference}:${city}`;
   const cacheData = getCache(cacheKey);
   if (cacheData) {
     console.log("Cache hit:", cacheKey);
@@ -1019,11 +1069,18 @@ const searchBusiness = async function (req, res) {
     let whereClauses = [];
 
     if (name !== "") {
-      whereClauses.push("(b.name LIKE CONCAT('%', ?, '%'))");
+      whereClauses.push(" b.name LIKE CONCAT('%', ?, '%') ");
+    }
+
+    if (city !== "") {
+      whereClauses.push(` l.city LIKE '%${city}%' `);
     }
 
     if (formattedCategories.length > 0) {
-      whereClauses.push(`(c.category IN (${formattedCategories.join(",")}))`);
+      // const query2 = `select DISTINCT business_id from category where category in (${formattedCategories.join(",")})`
+      // whereClauses.push(
+      //   ` b.business_id IN (${query2}) `,
+      // );
     }
 
     if (formattedUserPreference.length > 0 && JSON.parse(only_preference)) {
@@ -1036,22 +1093,27 @@ const searchBusiness = async function (req, res) {
       formattedUserPreference,
       JSON.parse(only_preference),
     );
+
+    
     // Ensure there's at least one WHERE clause before adding 'AND'
     let conditionConnector = whereClauses.length > 1 ? " AND " : "";
 
+
     const query = `
-      SELECT b.*, l.address, l.city, l.state,
+      SELECT b.*,l.address, l.city, l.state,
       ((0.4 * b.stars) + (0.3 * b.review_count)) AS score
       FROM business b
-      JOIN category c ON b.business_id = c.business_id
       JOIN locations l ON b.latitude = l.latitude AND b.longitude = l.longitude
       ${
         whereClauses.length > 0
-          ? "WHERE" + whereClauses.join(conditionConnector)
+          ? "WHERE " + whereClauses.join(conditionConnector)
           : ""
       }
-      ORDER BY score DESC;
-    `;
+      ORDER BY score DESC
+      limit 100
+    `; 
+
+    // todo: use page and pagesize instead of limit 100
 
     const queryParams = [];
     if (name !== "") {
@@ -1060,6 +1122,8 @@ const searchBusiness = async function (req, res) {
     queryParams.push(...formattedCategories, ...formattedUserPreference);
 
     console.log(query, queryParams);
+
+
     connection.query(query, queryParams, (err, data) => {
       if (err) {
         console.error(err);
@@ -1068,6 +1132,7 @@ const searchBusiness = async function (req, res) {
         res.json([]);
       } else {
         let _data = data
+
           console.log('city :>> ', city);
 
         // if (city) {
@@ -1315,6 +1380,7 @@ const deleteReview = async function (req, res) {
 };
 
 const getAllReviewsByUser = async function (req, res) {
+  console.log('getAllReviewsByUser :>> ');
   try {
     const tables = ["review_business", "review_airbnb"];
     let allPromises = [];

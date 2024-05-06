@@ -6,6 +6,9 @@ import MenuItem from '@mui/material/MenuItem';
 import InputLabel from '@mui/material/InputLabel';
 import { loginUser } from '../helpers/cookie';
 import ResidenceCard from '../components/ResidenceCard';
+import Map from '../components/map/src/App';  
+import { display } from '@mui/system';
+
 const config = require('../config.json');
 
 const ITEM_HEIGHT = 48;
@@ -32,6 +35,7 @@ export default function ResidencePage() {
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
   const [city, setCity] = useState('');
+  const [residenceData, setResidenceData] = useState([])
 
   // Load Airbnb Property types
   useEffect(() => {
@@ -57,13 +61,15 @@ export default function ResidencePage() {
       `&min_bedrooms=${bedrooms[0]}&max_bedrooms=${bedrooms[1]}` +
       `&min_price=${price[0]}&max_price=${price[1]}` +
       `&property=${property}&user_id=${loginUser().userId}` +
-      `&city=${city}`
+      `&city=${city}&page=${page}&pageSize=${pageSize}`
     )
       .then(res => res.json())
-      .then(resJson => {
+      .then(({data: resJson, total_count}) => {
         const residenceWithId = resJson.map((residence) => ({ id: residence.airbnb_id, ...residence }));
         setData(residenceWithId);
-        setTotalPages(Math.ceil(resJson.length / pageSize));
+        setTotalPages(Math.ceil(total_count / pageSize));
+        setResidenceData([])
+        setResidenceData(residenceWithId)
       });
   }
   const user_id = loginUser().userId;
@@ -122,69 +128,75 @@ export default function ResidencePage() {
     const MAX_LINES = 8;
   
     return (
-      <Grid container spacing={2} justifyContent="center">
-        {slicedData.map((row, index) => (
-          <Grid key={row.id} item xs={10} sm={10} md={10} lg={10}>
-            <Card alignItems={"center"}
-                  style={getCardStyle(index)}
-                  onMouseEnter={() => handleMouseEnter(index)}
-                  onMouseLeave={handleMouseLeave}
-                  >
-              <CardContent onClick={() => setSelectedResidenceId(row.airbnb_id)}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Typography variant="h6" component="div">
-                      <Link>{row.name}</Link>
+      <>
+        <div style={{ width: '100%',  display: "block", textAlign: 'center', margin: '10px auto;'}}>
+            <Map recommendedBusinesses={residenceData} residenceData={residenceData[0]}/> 
+          </div>
+        <Grid style={{ marginTop: '10px'}} container spacing={2} justifyContent="center">
+          {slicedData.map((row, index) => (
+            <Grid key={row.id} item xs={10} sm={10} md={10} lg={10}>
+              <Card alignItems={"center"}
+                    style={getCardStyle(index)}
+                    onMouseEnter={() => handleMouseEnter(index)}
+                    onMouseLeave={handleMouseLeave}
+                    >
+                <CardContent onClick={() => setSelectedResidenceId(row.airbnb_id)}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Typography variant="h6" component="div">
+                        <Link>{row.name}</Link>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={5}>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Stars: </span>
+                        {row.stars}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Review Count: </span>
+                        {row.review_count}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Bathrooms: </span>
+                        {row.bathrooms}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Bedrooms: </span>
+                        {row.bedrooms}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Beds: </span>
+                        {row.beds}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Price: </span>
+                        {row.price}
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        <span style={{ fontWeight: 'bold' }}>Property Type: </span>
+                        {row.property_type}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={7}>
+                    <Typography variant="body1" color="textSecondary" style={{overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: MAX_LINES, WebkitBoxOrient: 'vertical', top: '16px'}}>
+                      <span style={{ fontWeight: 'bold' }}>Description: </span>
+                      <br /> 
+                      {row.description}
                     </Typography>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={5}>
-                    <Typography variant="body1" color="textSecondary">
-                      <span style={{ fontWeight: 'bold' }}>Stars: </span>
-                      {row.stars}
-                    </Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      <span style={{ fontWeight: 'bold' }}>Review Count: </span>
-                      {row.review_count}
-                    </Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      <span style={{ fontWeight: 'bold' }}>Bathrooms: </span>
-                      {row.bathrooms}
-                    </Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      <span style={{ fontWeight: 'bold' }}>Bedrooms: </span>
-                      {row.bedrooms}
-                    </Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      <span style={{ fontWeight: 'bold' }}>Beds: </span>
-                      {row.beds}
-                    </Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      <span style={{ fontWeight: 'bold' }}>Price: </span>
-                      {row.price}
-                    </Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      <span style={{ fontWeight: 'bold' }}>Property Type: </span>
-                      {row.property_type}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={7}>
-                  <Typography variant="body1" color="textSecondary" style={{overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: MAX_LINES, WebkitBoxOrient: 'vertical', top: '16px'}}>
-                    <span style={{ fontWeight: 'bold' }}>Description: </span>
-                    <br /> 
-                    {row.description}
-                  </Typography>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </>
     );
   };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
+    search()
   };
 
   const handleChangePageSize = (event) => {

@@ -10,108 +10,153 @@ import Box from '@mui/material/Box';
 import InputLabel from '@mui/material/InputLabel';
 import { Checkbox } from '@mui/material';
 
+import { GoogleLogin, GoogleLogout } from 'react-google-login';
+import { gapi } from 'gapi-script';
 
 const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
 };
 
 export default function LoginForm({ isOpen, onClose, onSubmit }) {
 
-    const handleUsernameChange = (event) => {
-        const value = event.target.value;
-        // Filter out non-compliant characters
-        const filteredValue = value.replace(/[\s~`!@#$%^&*()_=+[\]{}|;:'",<>/?\\]/g, '');
-        formik.setFieldValue('username', filteredValue);
+
+
+  const handleUsernameChange = (event) => {
+    const value = event.target.value;
+    // Filter out non-compliant characters
+    const filteredValue = value.replace(/[\s~`!@#$%^&*()_=+[\]{}|;:'",<>/?\\]/g, '');
+    formik.setFieldValue('username', filteredValue);
+  };
+
+  const handlePwdChange = (event) => {
+    const value = event.target.value;
+    // Filter out non-compliant characters
+    const filteredValue = value.replace(/\s/g, ''); // Filter whitespace
+    formik.setFieldValue('password', filteredValue);
+  };
+
+  const formik = useFormik({
+    initialValues: {
+      username: '',
+      password: '',
+      business_login: false,
+    },
+    validationSchema: Yup.object().shape({
+      username: Yup.string().max(255).required('Username is required'),
+      password: Yup.string().min(6).required('Password is required'),
+    }),
+    onSubmit: (values) => {
+      onSubmit({ ...values, business_login });
+      onClose();
+    },
+  });
+
+  const [business_login, setBusinessLogin] = useState(false);
+  const handleBusinessChange = (event) => {
+    setBusinessLogin(event.target.checked);
+  };
+
+
+  const clientId = '453513275360-mi0g8lr1l25j3ndjlie04rlli24v9ra9.apps.googleusercontent.com';
+  useEffect(() => {
+    const initClient = () => {
+      gapi.client.init({
+        clientId: clientId,
+        scope: ''
+      });
     };
+    gapi.load('client:auth2', initClient);
+  });
+  const [profile, setProfile] = useState([]);
+  const onSuccess = (res) => {
+    setProfile(res.profileObj);
+  };
+  const onFailure = (err) => {
+    console.log('failed:', err);
+  };
+  const logOut = () => {
+    setProfile(null);
+  };
+  return (
+    <Modal open={isOpen} onClose={onClose} title="Login">
+      <Box sx={style}>
+        <form onSubmit={formik.handleSubmit}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Username"
+                name="username"
+                type="username"
+                value={formik.values.username}
+                onChange={handleUsernameChange}
+                error={formik.touched.username && Boolean(formik.errors.username)}
+                helperText={formik.touched.username && formik.errors.username}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Password"
+                name="password"
+                type="password"
+                value={formik.values.password}
+                onChange={handlePwdChange}
+                error={formik.touched.password && Boolean(formik.errors.password)}
+                helperText={formik.touched.password && formik.errors.password}
+              />
+            </Grid>
+            <Grid item xs={12} container justifyContent="center">
+              {profile ? (
+                <div>
+                  <img src={profile.imageUrl} alt="user image" />
+                  <h3>User Logged in</h3>
+                  <p>Name: {profile.name}</p>
+                  <p>Email Address: {profile.email}</p>
+                  <br />
+                  <br />
+                  <GoogleLogout clientId={clientId} buttonText="Log out" onLogoutSuccess={logOut} />
+                </div>
+              ) : (<GoogleLogin
+                clientId={clientId}
+                buttonText="Sign in with Google"
+                onSuccess={onSuccess}
+                onFailure={onFailure}
+                cookiePolicy={'single_host_origin'}
+                isSignedIn={true}
+              />)
+              }
 
-    const handlePwdChange = (event) => {
-        const value = event.target.value;
-        // Filter out non-compliant characters
-        const filteredValue = value.replace(/\s/g, ''); // Filter whitespace
-        formik.setFieldValue('password', filteredValue);
-    };
+              <Button
+                variant="contained"
+                color="primary"
+                type="submit"
+                disabled={!formik.isValid}
+                sx={{ mt: 2 }}
+              >
+                Login
+              </Button>
 
-    const formik = useFormik({
-        initialValues: {
-            username: '',
-            password: '',
-            business_login: false,
-        },
-        validationSchema: Yup.object().shape({
-            username: Yup.string().max(255).required('Username is required'),
-            password: Yup.string().min(6).required('Password is required'),
-        }),
-        onSubmit: (values) => {
-            onSubmit({...values, business_login});
-            onClose();
-        },
-    });
-
-    const [business_login, setBusinessLogin] = useState(false);
-    const handleBusinessChange = (event) => {
-        setBusinessLogin(event.target.checked);
-    };
-
-    return (
-        <Modal open={isOpen} onClose={onClose} title="Login">
-            <Box sx={style}>
-                <form onSubmit={formik.handleSubmit}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Username"
-                                name="username"
-                                type="username"
-                                value={formik.values.username}
-                                onChange={handleUsernameChange}
-                                error={formik.touched.username && Boolean(formik.errors.username)}
-                                helperText={formik.touched.username && formik.errors.username}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Password"
-                                name="password"
-                                type="password"
-                                value={formik.values.password}
-                                onChange={handlePwdChange}
-                                error={formik.touched.password && Boolean(formik.errors.password)}
-                                helperText={formik.touched.password && formik.errors.password}
-                            />
-                        </Grid>
-                        <Grid item xs={12} container justifyContent="center">
-                        <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                disabled={!formik.isValid}
-                                sx={{ mt: 2 }}
-                            >
-                                Login
-                            </Button>
-
-                            {/* <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> */}
-                                <Checkbox
-                                    checked={business_login}
-                                    onChange={handleBusinessChange}
-                                    inputProps={{ 'aria-label': 'business login' }}
-                                />
-                                {/* <InputLabel id="business-label" sx={{ mb: 1 }}>Business</InputLabel> */}
-                            {/* </Box> */}
-                        </Grid>
-                    </Grid>
-                </form>
-            </Box>
-        </Modal>
-    );
+              {/* <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> */}
+              <Checkbox
+                checked={business_login}
+                onChange={handleBusinessChange}
+                inputProps={{ 'aria-label': 'business login' }}
+              />
+              {/* <InputLabel id="business-label" sx={{ mb: 1 }}>Business</InputLabel> */}
+              {/* </Box> */}
+            </Grid>
+          </Grid>
+        </form>
+      </Box>
+    </Modal>
+  );
 };
