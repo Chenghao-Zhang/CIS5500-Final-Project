@@ -28,8 +28,8 @@ const style = {
 export default function LoginForm({ isOpen, onClose, onSubmit }) {
 
 
-
   const handleUsernameChange = (event) => {
+    // console.log("sfaf", event)
     const value = event.target.value;
     // Filter out non-compliant characters
     const filteredValue = value.replace(/[\s~`!@#$%^&*()_=+[\]{}|;:'",<>/?\\]/g, '');
@@ -63,7 +63,7 @@ export default function LoginForm({ isOpen, onClose, onSubmit }) {
   const handleBusinessChange = (event) => {
     setBusinessLogin(event.target.checked);
   };
-
+  
 
   const clientId = '453513275360-mi0g8lr1l25j3ndjlie04rlli24v9ra9.apps.googleusercontent.com';
   useEffect(() => {
@@ -85,6 +85,16 @@ export default function LoginForm({ isOpen, onClose, onSubmit }) {
   const logOut = () => {
     setProfile(null);
   };
+  // if (profile !== null) {
+  //   // Simulate an event with profile email as target value
+  //   console.log(profile.name)
+  //   // handleUsernameChange({ target: { value: profile.email } });
+  // }
+  useEffect(() => {
+    if (profile) {
+      formik.setFieldValue('username', profile.name);
+    }
+  }, [profile]);
   return (
     <Modal open={isOpen} onClose={onClose} title="Login">
       <Box sx={style}>
@@ -96,7 +106,7 @@ export default function LoginForm({ isOpen, onClose, onSubmit }) {
                 label="Username"
                 name="username"
                 type="username"
-                value={formik.values.username}
+                value={profile ? profile.name : formik.values.username}
                 onChange={handleUsernameChange}
                 error={formik.touched.username && Boolean(formik.errors.username)}
                 helperText={formik.touched.username && formik.errors.username}
@@ -127,7 +137,7 @@ export default function LoginForm({ isOpen, onClose, onSubmit }) {
                 </div>
               ) : (<GoogleLogin
                 clientId={clientId}
-                buttonText="Sign in with Google"
+                buttonText="Log in with Google"
                 onSuccess={onSuccess}
                 onFailure={onFailure}
                 cookiePolicy={'single_host_origin'}
