@@ -132,7 +132,7 @@ export default function ResidencePage() {
             <Map recommendedBusinesses={residenceData} residenceData={residenceData[0]}/> 
           </div>
         <Grid style={{ marginTop: '10px'}} container spacing={2} justifyContent="center">
-          {data.map((row, index) => (
+          {slicedData.map((row, index) => (
             <Grid key={row.id} item xs={10} sm={10} md={10} lg={10}>
               <Card alignItems={"center"}
                     style={getCardStyle(index)}

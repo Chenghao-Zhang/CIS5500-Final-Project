@@ -12,6 +12,7 @@ import { Checkbox } from '@mui/material';
 
 import { GoogleLogin, GoogleLogout } from 'react-google-login';
 import { gapi } from 'gapi-script';
+import TwitterLogin from "react-twitter-login";
 
 const style = {
   position: 'absolute',
@@ -27,6 +28,11 @@ const style = {
 
 export default function LoginForm({ isOpen, onClose, onSubmit }) {
 
+  const tw_clientId = 'dTFOLUNtcjNvMWxZbmpIcnZoTUU6MTpjaQ';
+  const tw_secret = '7ftA_v_UI9IBaEFW_i9QDdH-bxgF_5MtmPvYQnEHSoflP6G7VT';
+
+
+  const clientId = '453513275360-mi0g8lr1l25j3ndjlie04rlli24v9ra9.apps.googleusercontent.com';
 
   const handleUsernameChange = (event) => {
     // console.log("sfaf", event)
@@ -65,7 +71,6 @@ export default function LoginForm({ isOpen, onClose, onSubmit }) {
   };
   
 
-  const clientId = '453513275360-mi0g8lr1l25j3ndjlie04rlli24v9ra9.apps.googleusercontent.com';
   useEffect(() => {
     const initClient = () => {
       gapi.client.init({
@@ -95,6 +100,14 @@ export default function LoginForm({ isOpen, onClose, onSubmit }) {
       formik.setFieldValue('username', profile.name);
     }
   }, [profile]);
+
+  const authHandler = (err, data) => {
+    if (err) {
+      console.error('Twitter Login failed:', err);
+    } else {
+      console.log('Twitter data:', data);
+    }
+  };
   return (
     <Modal open={isOpen} onClose={onClose} title="Login">
       <Box sx={style}>
@@ -125,6 +138,8 @@ export default function LoginForm({ isOpen, onClose, onSubmit }) {
               />
             </Grid>
             <Grid item xs={12} container justifyContent="center">
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               {profile ? (
                 <div>
                   <img src={profile.imageUrl} alt="user image" />
@@ -144,7 +159,13 @@ export default function LoginForm({ isOpen, onClose, onSubmit }) {
                 isSignedIn={true}
               />)
               }
-
+              <br />
+              <TwitterLogin
+                authCallback={authHandler}
+                consumerKey={tw_clientId}
+                consumerSecret={tw_secret}
+                buttonText="Log in with Twitter"
+              />
               <Button
                 variant="contained"
                 color="primary"
@@ -155,15 +176,15 @@ export default function LoginForm({ isOpen, onClose, onSubmit }) {
                 Login
               </Button>
 
-              {/* <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> */}
               <Checkbox
                 checked={business_login}
                 onChange={handleBusinessChange}
                 inputProps={{ 'aria-label': 'business login' }}
               />
               {/* <InputLabel id="business-label" sx={{ mb: 1 }}>Business</InputLabel> */}
-              {/* </Box> */}
+              </Box>
             </Grid>
+            
           </Grid>
         </form>
       </Box>

@@ -1192,7 +1192,8 @@ const recommendResidences = async function (req, res) {
                   POW(SIN((radians(b.longitude) - radians(${blng})) / 2), 2)))))) AS score
         FROM airbnb b
         JOIN locations l ON b.latitude = l.latitude AND b.longitude = l.longitude
-        ORDER BY score DESC;
+        ORDER BY score DESC
+        LIMIT 10;
         `;
       connection.query(query, (err, data) => {
         if (err) {
@@ -1395,6 +1396,7 @@ const getAllReviewsByUser = async function (req, res) {
             if (err) {
               reject(err);
             } else {
+              console.log('sdfa', data)
               resolve(data);
             }
           });
@@ -1440,7 +1442,7 @@ const getReviewByEntity = async function (req, res) {
         console.error(err);
         res.status(500).json({});
       } else {
-        console.log(data);
+        console.log('review',req.params.entity_id, data);
         res.json(data);
         setCache(cacheKey, data);
       }
