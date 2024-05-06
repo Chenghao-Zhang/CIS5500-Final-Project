@@ -74,7 +74,7 @@ const BussinessAnalysis = () => {
     })
       .then(res => res.json())
       .then(resJson => {
-        console.log("sdfs", resJson);
+        // console.log("sdfs", resJson);
         setCompetitiveRanking(resJson);
       });
   }, []);

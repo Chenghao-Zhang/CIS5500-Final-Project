@@ -1774,7 +1774,7 @@ const getUserPreferenceCategory = async function (req, res) {
       FROM review_business r
       WHERE r.user_id = ?
       AND r.stars >= 3
-      AND r.date >= '2015-01-01'
+      AND r.date >= '2010-01-01'
       UNION ALL
       SELECT t.business_id, NULL AS stars
       FROM tip_business t
@@ -2078,7 +2078,7 @@ const queryResidence = `
                    FROM airbnb a
                   WHERE ABS(a.latitude - bd.latitude) <= 2
                     AND ABS(a.longitude - bd.longitude) <= 2
-                    AND a.airbnb_id = ${airbnb_id} -- Chosen Airbnb
+                    AND a.airbnb_id = ? -- Chosen Airbnb
              )
          GROUP BY bd.business_id
         HAVING AVG(rb.stars) >= 4.0
@@ -2088,7 +2088,6 @@ const queryResidence = `
         )
       SELECT *
       FROM first_query
-      
       UNION ALL
       SELECT b.name
       , b.stars
@@ -2120,8 +2119,9 @@ const queryResidence = `
       GROUP BY b.business_id, l.address, l.city, l.state
       ORDER BY distance ASC, score DESC
       LIMIT 10;
+
       `;
-      connection.query(query, [user_id],(err, data) => {
+      connection.query(query, [user_id, airbnb_id],(err, data) => {
         if (err) {
           console.log(err);
           res.status(500).json({});
