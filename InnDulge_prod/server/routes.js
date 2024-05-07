@@ -1544,6 +1544,7 @@ const getUserPreferenceByBusiness = async function (businessId, yearMonth) {
     SELECT DISTINCT user_id
     FROM review_business
     WHERE business_id = ? AND DATE_FORMAT(date, '%Y-%m') = ?
+    LIMIT 5
     `;
 
     connection.query(query, [businessId, yearMonth], (err, data) => {
